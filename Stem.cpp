@@ -7,15 +7,15 @@
 //Basic messages for all classes :
 /*
    PULL MESSAGE (PULLS first priority message from a given source files que, sends it into mainMessage loop to be executed) (This should be done for every file (in priority order) at the end of a message FDE cycle)
-       relevant function:
-	                     queMessage(MSG) internal messaging procedure for source file, ques parameter message into relavent que, ready to be fetched by the main messaging cycle.
-   
+	   relevant function:
+						 queMessage(MSG) internal messaging procedure for source file, ques parameter message into relavent que, ready to be fetched by the main messaging cycle.
+
    INITIALIZEOBJ (Initialises object for all source file instances, pulling them into scope within the main file procedures.
 
    */
 int main()
 {
-	
+
 	tree mainLoop;
 
 	mainLoop.sendMessage(mainLoop.START, 10);
@@ -27,10 +27,26 @@ int main()
 
 	while (true) //LOOP
 	{
-		
-		
+
+		bool flag = false;
+		int num{};
 		mainLoop.sendMessage(mainLoop.fetchPost()); //CHECK MESSAGE QUE PRIORITY, TAKE PRIORITY MESSAGE
-		
+
+		while (flag == false) // loop implemented to pause system at runtime as to see console outputs of main message loop.
+		{
+			while (std::cout << "|please enter 1 to continue|\n" && !(std::cin >> num))
+			{
+				std::cin.clear();
+				std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+				std::cout << " |Incorrect data input| \n";
+			}
+			if (num == 1)
+			{
+				flag = true;
+			}
+		}
+
+
 		/*
 
 		LOOP
