@@ -168,7 +168,7 @@ temporalLobe::weight* temporalLobe::createWeight(int relevance, int datacode, no
 */
 
 
-long long int temporalLobe::hashIn(long long int data) 
+long long int temporalLobe::hashIn(long long int data)
 {
     long long int temp{};
 
@@ -176,7 +176,29 @@ long long int temporalLobe::hashIn(long long int data)
 
     std::cout << "DataCode ouput from hashing algorithm = " << temp << "\n";
 
+    for (long long int i = 0; i <= temp; i++)
+    {
 
+        if (hashCodes[i] == NULL)
+        {
+            hashCodes.push_back(0);
+
+            std::cout << "Push back on hashCode vector | data = 0 | " << "Current iteration = " << i << "\n";
+        }
+        else
+        {
+            std::cout << "Passing over existing data point | data = " << hashCodes[i] << " | Current iteration = " << i << "\n";
+            continue;
+        }
+    }
+
+    while (true)
+    {
+        long long int i = temp;
+        if (hashCodes[i] == NULL)
+        {
+            std::cout << "Data input into hashCode vector | data = " << temp << " | Current iteration = " << i << "\n";
+            hashCodes[i] = temp;
 
             return temp;
         }
@@ -186,7 +208,7 @@ long long int temporalLobe::hashIn(long long int data)
             {
                 std::cout << "Data input into hashCode vector | data = " << temp << " | Current iteration = " << i << "\n";
                 hashCodes[i] = temp;
-                
+
                 return temp;
             }
             else
@@ -198,6 +220,7 @@ long long int temporalLobe::hashIn(long long int data)
     }
 
 }
+
 
 bool temporalLobe::hashIn(long long int data, bool overload)
 {
