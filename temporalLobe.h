@@ -34,6 +34,7 @@ class temporalLobe
 	{
 		long long int data;
 		long long int dataCode;
+
 		int relevance;
 		std::vector <std::vector<weight*>> out{}; //array of out addresses to different weights
 		std::vector <std::vector<weight*>> in{};
@@ -42,6 +43,14 @@ class temporalLobe
 			this->data = data;
 			this->dataCode = dataCode;
 			this->relevance = relevance;
+
+		std::vector <std::vector<weight*>> out{}; //array of out addresses to different weights
+		std::vector <std::vector<weight*>> in{};
+		node(long long int data, long long int dataCode, weight* out, weight* in)
+		{
+			this->data = data;
+			this->dataCode = dataCode;
+
 			this->out[dataCode].push_back(in); 
 			this->in[dataCode].push_back(out);
 		}
@@ -55,6 +64,7 @@ class temporalLobe
 		{
 			this->out[dataCode].push_back(in);
 		}
+
 		
 
 	};
@@ -92,6 +102,19 @@ public:
 	node* initialiseMemory(bool doesStructureExist);
 	void writeStructure();
 	void readStructure();
+
+
+
+	void decidePos(std::vector<long long int> data);
+	node* createNode(long long int relevance, long long int data);
+	weight* createWeight(int relevance, int datacode, node* in, node* out);
+
+	long long int hashIn(long long int data);
+	bool hashIn(long long int data, bool overload);
+	std::vector<long long int> hashCodes{};
+
+	node* findNode(long long int dataCode);
+
 
 	void decidePos(std::vector<long long int> data);
 	node* createNode(long long int relevance, long long int data);

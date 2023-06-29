@@ -15,8 +15,12 @@ temporalLobe::node* temporalLobe::initialiseMemory(bool doesStructureExist)  // 
 {
     if(doesStructureExist == false)
     {
+
         root = createNode(0, 0);
         return root;
+
+        return createNode(0, 0);
+
     }
     else
     {
@@ -25,13 +29,20 @@ temporalLobe::node* temporalLobe::initialiseMemory(bool doesStructureExist)  // 
 }
 
 
+
 void temporalLobe::writeStructure() //write current structure to file, could possibly pull all known points from stored stack if saving whole points, or could simply write to file every time a node is created or destroyed.
 {
     //write memory structure to binary file
+
+void temporalLobe::writeStructure() //write current structure to file, could possibly pull all known points from stored stack if saving whole points, or could simply write to file every time a node is created or destroyed.
+{
+    
+
 }
 
 void temporalLobe::readStructure() //loads current database structure from file, could load root first from beginning of file, then each individual node (consisting of dataCode and int data stored in node for translation), then connections between these nodes aka individual weights are loaded (consisting of in and out pointing connections and dataCode of weight (what node this weight points to for use by pathing algorithm).
 {
+
     //read binary file, write from binary file to system (initialising the stored memory structure)
 }
 
@@ -76,6 +87,15 @@ temporalLobe::node* temporalLobe::findNode(long long int dataCode) //Find existi
             }
         }
     }
+
+
+}
+
+
+
+temporalLobe::node* temporalLobe::findNode(long long int dataCode)
+{
+
     return nullptr;
 }
 void temporalLobe::decidePos(std::vector<long long int> data) //needs redevelopment as so to allocate data to out[] vector of addresses in node structure
@@ -87,8 +107,11 @@ void temporalLobe::decidePos(std::vector<long long int> data) //needs redevelopm
     std::vector <long long int> existingDataOverflow{};
     bool flag = false;
 
+
     node* focusNode{};
     weight* focusWeight{};
+
+
  
 
     for (int i = 0; i < vectorSize; i++)
@@ -97,8 +120,12 @@ void temporalLobe::decidePos(std::vector<long long int> data) //needs redevelopm
         {
             if (flag == true)
             {
+
                 existingDataOverflow.push_back(data[i]); //list of existing nodes that need to be connected to already found node (remember to check if connections between these nodes already exist) (connect every node to every node, all probability cases e.g blue to red red to blue etc.
                 data.erase(data.begin() + i);
+
+                existingDataOverflow.push_back(data[i]);
+
             }
             else
             {
@@ -114,13 +141,18 @@ void temporalLobe::decidePos(std::vector<long long int> data) //needs redevelopm
 
         
         stackRoot = data[existingIteration];
+
         focusNode = findNode(tempHashData(data[existingIteration]));
    
         weight* newWeight = new weight(vectorSize, focusNode->dataCode, focusNode, nullptr); //points in to node but not out
         focusWeight = newWeight;
 
+        weight* newWeight = new weight(vectorSize, /*pointerToExistingNode->dataCode*/, /*pointer to existing node, traversal function or list of node addresses needed*/, nullptr);
+
+
         data.erase(data.begin() + existingIteration);
         --vectorSize;
+
 
         while (true) //create all non existing nodes, add connections to root node (relevant to this instance, not root of entire data structure
         {
@@ -130,6 +162,14 @@ void temporalLobe::decidePos(std::vector<long long int> data) //needs redevelopm
         {
 
         }
+
+        while (true)
+        {
+            
+        }
+        
+        
+
         //traversal funtion to grab existing node address as pointer (to make) need way to point to existing node, best case scenario without traversal
 
     }
@@ -150,7 +190,11 @@ void temporalLobe::decidePos(std::vector<long long int> data) //needs redevelopm
 temporalLobe::node* temporalLobe::createNode(long long int relevance, long long int data) //initialises node, hashes new dataCode for pathing algorithm, adds weights in relation to nodes position (connects node to data structure) (referance ^^) : NOTE:: Only for data to be stored by data structure.
 {
    long long int hash = hashIn(data);
+
      node* newNode = new node(data, hash, 1, nullptr, nullptr);
+
+     node* newNode = new node(data, hash, nullptr, nullptr);
+
 
      return newNode;
 }
@@ -168,7 +212,11 @@ temporalLobe::weight* temporalLobe::createWeight(int relevance, int datacode, no
 */
 
 
+
 long long int temporalLobe::hashIn(long long int data)
+
+long long int temporalLobe::hashIn(long long int data) 
+
 {
     long long int temp{};
 
@@ -209,6 +257,10 @@ long long int temporalLobe::hashIn(long long int data)
                 std::cout << "Data input into hashCode vector | data = " << temp << " | Current iteration = " << i << "\n";
                 hashCodes[i] = temp;
 
+
+
+                
+
                 return temp;
             }
             else
@@ -220,6 +272,9 @@ long long int temporalLobe::hashIn(long long int data)
     }
 
 }
+
+
+
 
 
 bool temporalLobe::hashIn(long long int data, bool overload)
@@ -282,10 +337,12 @@ bool temporalLobe::hashIn(long long int data, bool overload)
 
 }
 
+
 long long int temporalLobe::tempHashData(long long int data) //quickly hash data for comparison
 {
     return data * 100 % 10 - 5 / 2 + 22 * 3;
 }
+
 
 
 
@@ -316,8 +373,13 @@ long long int temporalLobe::tempHashData(long long int data) //quickly hash data
 //NOTE FOR FURTHER DEVELOPMENT: FOCUS ON BASIC FEATURES AS OF RIGHT NOW, FEATURES FOR ADDED EFFICIENCY / USER EXPERIENCE CAN COME IN LATER :)
                                    //PRIORITY TO DO LIST
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 // Create sorting algorithm for weight vectors pointed to by the in and out pointers within the node structure. (highest weight first lowest weight last).
 // Change node structure as so each node has a relevance (how many times a node has been traversed, low relevance node on the rim of the memory structure are deleted if not travelled on). (simulates the human ability to forget things, in this case is a memory saving measure due to limited hardware, however could potentially be removed in better hardware usecases, or if it is used in any problem solving algorithms, such as forgetting unnescassary filler data or inneficient data paths.
+
+// Create treversal function to specific node as precourser to node creation functions, nescassary as to grab node address if it already exists in existing memory structure. Follow memory structure in referance
+
+
 //-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
@@ -325,7 +387,11 @@ long long int temporalLobe::tempHashData(long long int data) //quickly hash data
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 //TODO ADD FUNCTION TO SAVE CURRENT DATA STRUCTURE TO DEVICE STORAGE, NOTE :: AFTER STRUCTURAL FUNCTIONS HAVE BEEN DESIGNED AND IMPLEMENTED
 //to do update to give weight connection to root or position from root in referance to data inputed along with data. other update referance ^^ , this is going to take a while :) (develop decidePos in conjunction with dataIn func)
+
 //-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+// TODO CONFIGURE IN AND OUT ADRRESSES OF EACH NODE TO BE AN ARRAY OF ADDRESSES, THE POSITIONS OF WHICH ARE DETERMINED BY THE DATACODE OF THE NODE BEING POINTED TO
+
 // NOTE: POSSIBLY ONLY NEED OUT ADDRESSES IF ALGORITHM IS GOING TO BE ONE WAY, AS ADDRESSES OF ALREADY TRAVERSED NODES WILL BE STORED IN A STACK.
 //     // Edit hash function as so hashcodes are stored with an in pointer to relative node.
 //-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
