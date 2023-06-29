@@ -39,9 +39,11 @@ class temporalLobe
 			this->data = data;
 			this->dataCode = dataCode;
 			this->relevance = relevance;
+		}
 
 		std::vector <std::vector<weight*>> out{}; //array of out addresses to different weights
 		std::vector <std::vector<weight*>> in{};
+
 		node(long long int data, long long int dataCode, weight* out, weight* in)
 		{
 			this->data = data;

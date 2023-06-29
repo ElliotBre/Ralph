@@ -1,6 +1,6 @@
 #include "temporalLobe.h"
 
-
+//testing ...
 //when inputed
 
 //if new problem/ category(method for finding undefined) create stack, take in data, push into stack.
@@ -108,11 +108,12 @@ void temporalLobe::decidePos(std::vector<long long int> data) //needs redevelopm
         }
     }
 
+
     if (flag == true)
     {
         stackRoot = data[existingIteration];
         focusNode = findNode(tempHashData(data[existingIteration]));
-   
+
         weight* newWeight = new weight(vectorSize, focusNode->dataCode, focusNode, nullptr); //points in to node but not out
         focusWeight = newWeight;
 
@@ -121,11 +122,12 @@ void temporalLobe::decidePos(std::vector<long long int> data) //needs redevelopm
 
         while (true) //create all non existing nodes, add connections to root node (relevant to this instance, not root of entire data structure
         {
-            
+
         }
         while (true) //add connections between all already existing node to root node (deliberate whether to add connection from these nodes to newly created nodes too).
         {
-        //traversal funtion to grab existing node address as pointer (to make) need way to point to existing node, best case scenario without traversal
+            //traversal funtion to grab existing node address as pointer (to make) need way to point to existing node, best case scenario without traversal
+        }
     }
     else
     {
@@ -134,8 +136,9 @@ void temporalLobe::decidePos(std::vector<long long int> data) //needs redevelopm
 
     while (true)
     {
-        
+
     }
+  
 
 }
 //if connecction already exists when finding running through stack after match has been found simply connect existing data set to existing data set.
