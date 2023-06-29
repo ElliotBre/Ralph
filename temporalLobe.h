@@ -103,19 +103,6 @@ public:
 	void writeStructure();
 	void readStructure();
 
-
-
-	void decidePos(std::vector<long long int> data);
-	node* createNode(long long int relevance, long long int data);
-	weight* createWeight(int relevance, int datacode, node* in, node* out);
-
-	long long int hashIn(long long int data);
-	bool hashIn(long long int data, bool overload);
-	std::vector<long long int> hashCodes{};
-
-	node* findNode(long long int dataCode);
-
-
 	void decidePos(std::vector<long long int> data);
 	node* createNode(long long int relevance, long long int data);
 	weight* createWeight(int relevance, int datacode, node* in, node* out);
