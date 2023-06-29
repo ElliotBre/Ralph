@@ -27,14 +27,35 @@
 */
 class temporalLobe
 {
-	//FIND WAY TO DYNAMICALLY ADD WEIGHT TO NODE, MULTIPLE WEIGHTS REQUIRED
+	struct weight;
+	struct node;
+
 	struct node
 	{
 		long long int data;
-		node(long long int data)
+		long long int dataCode;
+		int relevance;
+		std::vector <std::vector<weight*>> out{}; //array of out addresses to different weights
+		std::vector <std::vector<weight*>> in{};
+		node(long long int data, long long int dataCode, int relevance, weight* out, weight* in)
 		{
 			this->data = data;
+			this->dataCode = dataCode;
+			this->relevance = relevance;
+			this->out[dataCode].push_back(in); 
+			this->in[dataCode].push_back(out);
 		}
+
+		node(long long int dataCode, weight* out)
+		{
+			this->out[dataCode].push_back(out);
+		}
+
+		node(long long int dataCode, weight* in)
+		{
+			this->out[dataCode].push_back(in);
+		}
+		
 
 	};
 
@@ -43,15 +64,15 @@ class temporalLobe
 		int relevance{};
 		long long int dataCode{};
 		
-		weight* in;
-		weight* out;
+		node* in;
+		node* out;
 
-		weight(long long int relevance, long long int dataCode, weight* in, weight* out)
+		weight(int relevance, long long int dataCode, node* in, node* out)
 		{
 			this->relevance = relevance;
 			this->dataCode = dataCode;
-			this->in = nullptr;
-			this->out = nullptr;
+			this->in = in;
+			this->out = out;
 		}
 
 	};
@@ -59,16 +80,35 @@ class temporalLobe
 
 	temporalLobe()
 	{
-		node* newNode = new node(48384834);
-		weight* newWeight = new weight(1, 8933309, )
+	//	node* newNode = new node(48384834, 8933309, nullptr, 0);
+	//	node* newWeight = new node(); //e.g for use of weight and node in creation of new weight and node
 
 	}
-	
+
+
+	//todo create function that uses hashIn to initialise a node from input int data adding returned hash from dataCode input into hashCodes Vector (vectors purpose is to store datacodes of all nodes as to check for node availability before treversal of structure).
+	// future referance, deciding function needs to be made to determine wether data needs to be stored fully with weights (dataIn()) if data needs to be retrieved (dataOut) or if a weight has to be added to the data due to relevant data being stored within.
 public:
+	node* initialiseMemory(bool doesStructureExist);
+	void writeStructure();
+	void readStructure();
+
+	void decidePos(std::vector<long long int> data);
+	node* createNode(long long int relevance, long long int data);
+	weight* createWeight(int relevance, int datacode, node* in, node* out);
+
+	long long int hashIn(long long int data);
+	bool hashIn(long long int data, bool overload);
+	long long int tempHashData(long long int data);
+	std::vector<long long int> hashCodes{};
+
+	node* findNode(long long int dataCode);
+	node* findRoot();
+
 
 
 
 private:
-
+	node* root;
 };
 
