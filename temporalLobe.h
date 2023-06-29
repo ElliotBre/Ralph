@@ -20,10 +20,6 @@
 
    take data input, connect it to last fetched node on edge of grid, adds weight structure to each node traversed to reatch the newly added node, stored in stack. 
 
-
-
-
-
 */
 class temporalLobe
 {
@@ -64,9 +60,6 @@ class temporalLobe
 		{
 			this->out[dataCode].push_back(in);
 		}
-
-		
-
 	};
 
 	struct weight
@@ -94,7 +87,6 @@ class temporalLobe
 	//	node* newWeight = new node(); //e.g for use of weight and node in creation of new weight and node
 
 	}
-
 
 	//todo create function that uses hashIn to initialise a node from input int data adding returned hash from dataCode input into hashCodes Vector (vectors purpose is to store datacodes of all nodes as to check for node availability before treversal of structure).
 	// future referance, deciding function needs to be made to determine wether data needs to be stored fully with weights (dataIn()) if data needs to be retrieved (dataOut) or if a weight has to be added to the data due to relevant data being stored within.
