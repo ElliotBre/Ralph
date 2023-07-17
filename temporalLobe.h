@@ -28,19 +28,10 @@ class temporalLobe
 
 	struct node
 	{
-		long long int data;
-		long long int dataCode;
+		long long int data{};
+		long long int dataCode{};
 
-		int relevance;
-		std::vector <std::vector<weight*>> out{}; //array of out addresses to different weights
-		std::vector <std::vector<weight*>> in{};
-		node(long long int data, long long int dataCode, int relevance, weight* out, weight* in)
-		{
-			this->data = data;
-			this->dataCode = dataCode;
-			this->relevance = relevance;
-		}
-
+		int relevance{};
 		std::vector <std::vector<weight*>> out{}; //array of out addresses to different weights
 		std::vector <std::vector<weight*>> in{};
 
