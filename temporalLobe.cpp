@@ -43,9 +43,11 @@ temporalLobe::node* temporalLobe::findRoot() //more memorable way to findRoot, f
 temporalLobe::node* temporalLobe::findNode(long long int dataCode) //Find existing node to pull data from within the structure
 {
 
-    std::vector<weight*> currentWeightGraph{};
+    weight* topWeight{};
     node* focusNode{};
     weight* focusWeight{};
+    
+    
 
     focusNode = root;
     while (true)
@@ -62,14 +64,19 @@ temporalLobe::node* temporalLobe::findNode(long long int dataCode) //Find existi
             }
             else
             {
-                currentWeightGraph = focusNode->out[dataCode];  //find weight pointing to path of weights towards desired node
-                if (currentWeightGraph[0] == nullptr) //precaution in case of memory corruption leading to a null weight being placed within weight graph.
+                topWeight = focusNode->outTop[dataCode].second;  //find weight pointing to path of weights towards desired node
+                if (topWeight == nullptr) //precaution in case of memory corruption leading to a null weight being placed within topWeight of a node
                 {
-                    focusNode->out[dataCode].erase(focusNode->out[dataCode].begin()); //test to see if deletes out[dataCode][0] (pointer to dead null)
+                    focusWeight = focusNode->out[dataCode][0];
+
+                    if (focusWeight == nullptr)
+                    {
+                        return nullptr;
+                    }
                 }
                 else
                 {
-                    focusWeight = currentWeightGraph[0]; //find weight point with highest relevance to desired node (travelled across most frequently) refer to todo list, this algorithm only works if weights are correctly sorted within their respective vectors
+                    focusWeight = topWeight; //find weight point with highest relevance to desired node (travelled across most frequently) refer to todo list, this algorithm only works if weights are correctly sorted within their respective vectors
                     focusNode = focusWeight->out;
                 }
             }
@@ -81,15 +88,17 @@ temporalLobe::node* temporalLobe::findNode(long long int dataCode) //Find existi
 
 void temporalLobe::decidePos(std::vector<long long int> data) //needs redevelopment as so to allocate data to out[] vector of addresses in node structure
 {
-    long long int stackRoot{};
+   
     int existingIteration{};
     int vectorSize = data.size();
-    int relevance{};
     std::vector <long long int> existingDataOverflow{};
     bool flag = false;
 
+    node* stackRoot{};
     node* focusNode{};
     weight* focusWeight{};
+
+   
 
     for (int i = 0; i < vectorSize; i++)
     {
@@ -111,35 +120,60 @@ void temporalLobe::decidePos(std::vector<long long int> data) //needs redevelopm
 
     if (flag == true)
     {
-        stackRoot = data[existingIteration];
-        focusNode = findNode(tempHashData(data[existingIteration]));
+        
+        stackRoot = findNode(tempHashData(data[existingIteration]));
+      
 
-        weight* newWeight = new weight(vectorSize, focusNode->dataCode, focusNode, nullptr); //points in to node but not out
+        weight* newWeight = new weight(vectorSize, stackRoot->dataCode, stackRoot, nullptr); //points in to node but not out
         focusWeight = newWeight;
 
         data.erase(data.begin() + existingIteration);
         --vectorSize;
 
-        while (true) //create all non existing nodes, add connections to root node (relevant to this instance, not root of entire data structure
-        {
+      
+        focusNode = createNode(9, data[0], newWeight, nullptr);
+        data.erase(data.begin());
 
-        }
-        while (true) //add connections between all already existing node to root node (deliberate whether to add connection from these nodes to newly created nodes too).
+       
+        while (vectorSize > 0)
         {
+            weight* newWeight = new weight(vectorSize, stackRoot->dataCode, focusNode, nullptr);
+            focusWeight = newWeight;
+            focusNode = createNode(vectorSize, data[0],focusWeight, nullptr);
+            
+            data.erase(data.begin());
+            --vectorSize;
+        }
+            
+        vectorSize = existingDataOverflow.size();
+        while (vectorSize > 0) //add connections between all already existing node to root node (deliberate whether to add connection from these nodes to newly created nodes too).
+        {
+            focusNode = findNode(tempHashData(existingDataOverflow[0]));
+
+            weight* newWeight = new weight(5, focusNode->dataCode, stackRoot, focusNode);
+            weight* newWeight = new weight(5, stackRoot->dataCode, focusNode, stackRoot);
+
+            --vectorSize;
+            existingDataOverflow.erase(existingDataOverflow.begin());
             //traversal funtion to grab existing node address as pointer (to make) need way to point to existing node, best case scenario without traversal
         }
     }
     else
     {
-        stackRoot = data[0];
+
+        stackRoot = root;
+
+        while (vectorSize > 0)
+        {
+            weight* newWeight = new weight(vectorSize, stackRoot->dataCode, focusNode, nullptr);
+            focusWeight = newWeight;
+            focusNode = createNode(vectorSize, data[0], focusWeight, nullptr);
+
+            data.erase(data.begin());
+            --vectorSize;
+        }
+   
     }
-
-    while (true)
-    {
-
-    }
-  
-
 }
 //if connecction already exists when finding running through stack after match has been found simply connect existing data set to existing data set.
 
@@ -151,11 +185,52 @@ temporalLobe::node* temporalLobe::createNode(long long int relevance, long long 
     
      return newNode;
 }
-temporalLobe::weight* temporalLobe::createWeight(int relevance, int datacode, node* in, node* out)
+temporalLobe::node* temporalLobe::createNode(long long int relevance, long long int data, weight* in, weight* out)
 {
-    weight* newWeight = new weight(relevance, datacode, in, nullptr);
+    long long int hash = hashIn(data);
+    node* newNode = new node(data, hash, 1, out, in);
+
+    out->in = newNode;
+    in->out = newNode;
+
+    return newNode;
+}
+temporalLobe::weight* temporalLobe::createWeight(int relevance, int dataCode, node* in, node* out)
+{
+    weight* newWeight = new weight(relevance, dataCode, in, out);
+
+  //in->out[dataCode] = newWeight;
+    
+    compareTopWeight(dataCode, newWeight, 1);
+    compareTopWeight(dataCode, newWeight);
 
     return newWeight;
+}
+
+
+void temporalLobe::pushOutWeight(long long int dataCode, node* currentNode, weight* out)
+{
+    currentNode->out[dataCode].push_back(out);
+};
+void temporalLobe::pushInWeight(long long int dataCode, node* currentNode, weight* in)
+{
+    currentNode->in[dataCode].push_back(in);
+};
+
+void temporalLobe::compareTopWeight(long long int dataCode, weight* currentWeight, unsigned short overload) //compare top in weight of node
+{
+
+    if (currentWeight->relevance > currentWeight->out->inTop[dataCode].first)
+    {
+        currentWeight->out->pushTopWeight(dataCode, currentWeight, overload);
+    }
+}
+void temporalLobe::compareTopWeight(long long int dataCode, weight* currentWeight) //compare top out weight of node
+{
+    if (currentWeight->relevance > currentWeight->in->outTop[dataCode].first)
+    {
+        currentWeight->in->pushTopWeight(dataCode, currentWeight);
+    }
 }
 
 long long int temporalLobe::hashIn(long long int data) 
@@ -310,17 +385,14 @@ long long int temporalLobe::tempHashData(long long int data) //quickly hash data
 //NOTE FOR FURTHER DEVELOPMENT: FOCUS ON BASIC FEATURES AS OF RIGHT NOW, FEATURES FOR ADDED EFFICIENCY / USER EXPERIENCE CAN COME IN LATER :)
                                    //PRIORITY TO DO LIST
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-// Create sorting algorithm for weight vectors pointed to by the in and out pointers within the node structure. (highest weight first lowest weight last).
-// Change node structure as so each node has a relevance (how many times a node has been traversed, low relevance node on the rim of the memory structure are deleted if not travelled on). (simulates the human ability to forget things, in this case is a memory saving measure due to limited hardware, however could potentially be removed in better hardware usecases, or if it is used in any problem solving algorithms, such as forgetting unnescassary filler data or inneficient data paths.
+//Add function that runs through entire memory structure, --relevance from all nodes and weights etc unless they have permanance in the system (a relevance over 10 (subject to change after experimentation)) function then deletes all nodes and weights with a relevance of 0, this saves storage space
+//Add translation function that is able to write entire structure to a binary file, works off of a translation ruleset, e.g five 0s in conjunction for a new weight /  node etc (needs to be developed theoretically). De initialise structure (delete) after this has been finished.
+//Add reverse to the above function as so you can read from a binary file and initialise the structure. Using the same translation function makes sense, should be coded as so it can work in reverse too.
+//Note: using the c++ bitmap function library should be useful for the above two ADDs.
 //-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
                                    //TO DO LIST
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-//TODO ADD FUNCTION TO SAVE CURRENT DATA STRUCTURE TO DEVICE STORAGE, NOTE :: AFTER STRUCTURAL FUNCTIONS HAVE BEEN DESIGNED AND IMPLEMENTED
-//to do update to give weight connection to root or position from root in referance to data inputed along with data. other update referance ^^ , this is going to take a while :) (develop decidePos in conjunction with dataIn func)
-//-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-// NOTE: POSSIBLY ONLY NEED OUT ADDRESSES IF ALGORITHM IS GOING TO BE ONE WAY, AS ADDRESSES OF ALREADY TRAVERSED NODES WILL BE STORED IN A STACK.
-//     // Edit hash function as so hashcodes are stored with an in pointer to relative node.
+// Write function to be placed into the STEM loop, link all functions to ENUMS as so they can be called individually by the que.
 //-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

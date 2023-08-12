@@ -15,6 +15,7 @@
    checks to see if relevance related to this (done through hashing) e
 */
 
+
 /*
    //e.g input(find data 5)
 
@@ -28,31 +29,41 @@ class temporalLobe
 
 	struct node
 	{
-		long long int data{};
-		long long int dataCode{};
+		long long int data;
+		long long int dataCode;
 
-		int relevance{};
+		int relevance;
+		//simply always have the current highest weight going outwards stored in a seperate vector that can be accesed when searching, like a temp variable, when entering a new weight or updating an existing weight simply check over this temp variable, if node being compared is bigger, temp = new variable, store as a 2d vector with relevance and a pointer to the weight :)
 		std::vector <std::vector<weight*>> out{}; //array of out addresses to different weights
-		std::vector <std::vector<weight*>> in{};
+		std::vector<std::pair<long long int , weight*>> outTop; //stored heighest relevance weight for each datacode.
 
-		node(long long int data, long long int dataCode, weight* out, weight* in)
+		std::vector <std::vector<weight*>> in{}; //weight can be sorted based on the size of its relevance, accessed through node->relevance, this will be accessed to determine its placement within vector, aka its relevance is its iteration too, weights with the same relevance will simply be pushed back // weight will have to be updated when its relevance is changed, 
+		std::vector<std::pair<long long int, weight*>> inTop{}; //stored heighest relevance weight for each datacode.
+
+		void pushTopWeight(long long int dataCode, weight* out)
+		{
+			this->outTop[dataCode].first = out->relevance;
+			this->outTop[dataCode].second = out;
+		}
+		void pushTopWeight(long long int dataCode, weight* in, unsigned short overload)
+		{
+			this->inTop[dataCode].first = in->relevance;
+			this->inTop[dataCode].second = in;
+		}
+		node(long long int data, long long int dataCode,long long int relevance, weight* out, weight* in)
 		{
 			this->data = data;
 			this->dataCode = dataCode;
+			this->relevance = relevance;
 
-			this->out[dataCode].push_back(in); 
-			this->in[dataCode].push_back(out);
-		}
-
-		node(long long int dataCode, weight* out)
-		{
-			this->out[dataCode].push_back(out);
-		}
-
-		node(long long int dataCode, weight* in)
-		{
 			this->out[dataCode].push_back(in);
+			pushTopWeight(dataCode, out);
+			this->in[dataCode].push_back(out);
+			pushTopWeight(dataCode, in, 1);
+			
 		}
+
+
 	};
 
 	struct weight
@@ -63,7 +74,7 @@ class temporalLobe
 		node* in;
 		node* out;
 
-		weight(int relevance, long long int dataCode, node* in, node* out)
+		weight(long long int relevance, long long int dataCode, node* in, node* out)
 		{
 			this->relevance = relevance;
 			this->dataCode = dataCode;
@@ -90,7 +101,13 @@ public:
 
 	void decidePos(std::vector<long long int> data);
 	node* createNode(long long int relevance, long long int data);
+	node* createNode(long long int relevance, long long int data, weight* in, weight* out);
 	weight* createWeight(int relevance, int datacode, node* in, node* out);
+
+	void pushOutWeight(long long int datacode, node* currentNode, weight* out);
+	void pushInWeight(long long int datacode, node* currentNode, weight* in);
+	void compareTopWeight(long long int dataCode, weight* currentWeight, unsigned short overload);
+	void compareTopWeight(long long int dataCode, weight* currentWeight);
 
 	long long int hashIn(long long int data);
 	bool hashIn(long long int data, bool overload);
