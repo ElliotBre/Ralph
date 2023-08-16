@@ -117,6 +117,8 @@ public:
 	node* findNode(long long int dataCode);
 	node* findRoot();
 
+	void relevanceReduction();
+
 
 
 

@@ -355,6 +355,73 @@ long long int temporalLobe::tempHashData(long long int data) //quickly hash data
     return data * 100 % 10 - 5 / 2 + 22 * 3;
 }
 
+//Note modifications such as a list of all low relevance vectors (as to speed up process of deletion), can be added. Modification for a more efficient function is also probably needed.
+void temporalLobe::relevanceReduction() //runs through every node, if(node->relevance !> 10) --node->relevance, does same for in weight list for each visited node.
+{
+    node* focusNode{};
+    weight* focusWeight{};
+
+    std::vector<long long int> tempCodes = hashCodes;
+    std::vector<weight*> tempWeights{};
+    
+
+
+    focusNode = root;
+
+    while (tempCodes.size() > 0)
+    {
+        focusNode = findNode(tempCodes[0]);
+
+        if (focusNode->relevance < 10)
+        {
+            if (focusNode->relevance <= 0)
+            {
+                //delete node (placeholder)
+            }
+            else
+            {
+                --focusNode->relevance;
+
+                for (int i = 0; i < focusNode->in.size(); i++)
+                {
+
+                    while (tempWeights[0] == nullptr)
+                    {
+                        tempWeights = focusNode->in[i];
+                        if (tempWeights[0] == nullptr)
+                        {
+                            ++i;
+                        }
+                    }
+
+                    while (tempWeights.size() > 0)
+                    {
+                        focusWeight = tempWeights[0];
+                        if (focusWeight->relevance < 10)
+                        {
+                            if (focusWeight->relevance <= 0)
+                            {
+                                //delete weight (placeholder)
+                            }
+                            else
+                            {
+                                --focusWeight->relevance;
+                            }
+
+                        }
+
+                        tempWeights.erase(tempWeights.begin());
+                    }
+                }
+            }
+        }
+
+        tempCodes.erase(tempCodes.begin());
+    }
+
+
+}
+
 
 
 
@@ -385,7 +452,7 @@ long long int temporalLobe::tempHashData(long long int data) //quickly hash data
 //NOTE FOR FURTHER DEVELOPMENT: FOCUS ON BASIC FEATURES AS OF RIGHT NOW, FEATURES FOR ADDED EFFICIENCY / USER EXPERIENCE CAN COME IN LATER :)
                                    //PRIORITY TO DO LIST
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-//Add function that runs through entire memory structure, --relevance from all nodes and weights etc unless they have permanance in the system (a relevance over 10 (subject to change after experimentation)) function then deletes all nodes and weights with a relevance of 0, this saves storage space
+//Add function to delete nodes and weights, needed as a nodes dependencies (FULL DESCRIP: All in and out weights need to be deleted, as well as the data that points to them in other weights and nodes) also need to be deleted.
 //Add translation function that is able to write entire structure to a binary file, works off of a translation ruleset, e.g five 0s in conjunction for a new weight /  node etc (needs to be developed theoretically). De initialise structure (delete) after this has been finished.
 //Add reverse to the above function as so you can read from a binary file and initialise the structure. Using the same translation function makes sense, should be coded as so it can work in reverse too.
 //Note: using the c++ bitmap function library should be useful for the above two ADDs.
