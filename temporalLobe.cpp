@@ -207,6 +207,163 @@ temporalLobe::weight* temporalLobe::createWeight(int relevance, int dataCode, no
     return newWeight;
 }
 
+void temporalLobe::deleteNode(node* nodePointer) //Deletes weights pointing directly into and out of node before deleting the node structure itself. Note: look at todo for further development of this function (and or deleteWeight function depending on direction taken).
+{
+
+
+    while (0 < nodePointer->out.size())
+    {
+        if (nodePointer->out[0].size() == 0)
+        {
+            nodePointer->out.erase(nodePointer->out.begin());
+        }
+        else
+        {
+
+            while (0 < nodePointer->out[0].size())
+            {
+                deleteWeight(nodePointer->out[0][0]);
+               // nodePointer->out[0].erase(nodePointer->out[0].begin()); Note: not needed (neeeds to be tested) as removal covered in deleteWeight Function
+            }
+
+            nodePointer->out.erase(nodePointer->out.begin());
+        }
+
+    }
+
+    while (0 < nodePointer->in.size())
+    {
+        if (nodePointer->in[0].size() == 0)
+        {
+            nodePointer->in.erase(nodePointer->in.begin());
+        }
+        else
+        {
+
+            while (0 < nodePointer->in[0].size())
+            {
+                deleteWeight(nodePointer->in[0][0]);
+                //nodePointer->in[0].erase(nodePointer->in[0].begin()); As stated above.
+            }
+
+            nodePointer->in.erase(nodePointer->in.begin());
+        }
+
+    }
+
+    delete nodePointer;
+}
+
+   
+
+void temporalLobe::deleteWeight(weight* weightPointer) //finds and removes weight from in->out and out->in lists for corresponding nodes before deleting the weight structure itself.
+{
+
+    std::vector<weight*> focusVector {};
+    std::vector<weight*> focusVectorIn{};
+    weight* focusWeight {};
+    weight* focusWeightIn{};
+    long long int targetWeightIteration {};
+    long long int targetWeightIterationIn{};
+    long long int tempTargetWeightIterationFront = 0;
+    long long int tempTargetWeightIterationFrontIn = 0;
+  
+    focusVector = weightPointer->out->in[weightPointer->dataCode];
+    focusVectorIn = weightPointer->in->out[weightPointer->dataCode];
+
+        //erase correspondent weight in node connected out->in vector
+        //erase correspondent weight in node connected in->out vector
+        //messing around with simultaneous loop to make the process of searching for weight pointer in both vectors more efficient than having two loops through basic login (I wish, I was way too tired for this). Note: do change this to two seperate loops if this fails spectacularly, I have confidence that it will work as intended though, just here for future troubleshooting
+        while (focusWeight != weightPointer || focusWeightIn != weightPointer)
+        {
+            if(focusWeight != weightPointer)
+            { 
+            focusWeight = focusVector[0];
+            }
+       
+            if (focusWeightIn != weightPointer)
+            {
+                focusWeightIn = focusVectorIn[0];
+            }
+
+            if (focusWeight == weightPointer && focusWeightIn == weightPointer)
+            {
+                targetWeightIteration = tempTargetWeightIterationFront;
+                targetWeightIterationIn = tempTargetWeightIterationFrontIn;
+            }
+            else {
+                if (focusWeight == weightPointer && focusWeightIn != weightPointer)
+                {
+                    targetWeightIteration = tempTargetWeightIterationFront;
+                    tempTargetWeightIterationFrontIn += 1;
+
+                    focusWeightIn = focusVectorIn[focusVectorIn.size()];
+                    if (focusWeightIn == weightPointer)
+                    {
+                        targetWeightIterationIn = focusVectorIn.size();
+                    }
+                    else
+                    {
+                        focusVectorIn.pop_back();
+                        focusVectorIn.erase(focusVectorIn.begin());
+                    }
+                }
+                else {
+                    if (focusWeight != weightPointer && focusWeightIn == weightPointer)
+                    {
+                        targetWeightIterationIn = tempTargetWeightIterationFrontIn;
+                        tempTargetWeightIterationFront += 1;
+                       
+
+                        focusWeight = focusVector[focusVector.size()];
+                        if (focusWeight == weightPointer)
+                        {
+                            targetWeightIteration = focusVector.size();
+                        }
+                        else
+                        {
+                            focusVector.pop_back();
+                            focusVector.erase(focusVector.begin());
+                        }
+                    }
+                    else {
+                        tempTargetWeightIterationFront += 1;
+                        tempTargetWeightIterationFrontIn += 1;
+
+                        focusWeight = focusVector[focusVector.size()];
+                        focusWeightIn = focusVectorIn[focusVectorIn.size()];
+
+                        if (focusWeight == weightPointer)
+                        {
+                            targetWeightIteration = focusVector.size();
+                        }
+                        else
+                        {
+                            focusVector.pop_back();
+                            focusVector.erase(focusVector.begin());
+                        }
+                        if (focusWeightIn == weightPointer)
+                        {
+                            targetWeightIterationIn = focusVectorIn.size();
+                        }
+                        else
+                        {
+                            focusVectorIn.pop_back();
+                            focusVectorIn.erase(focusVectorIn.begin());
+                        }
+                    }
+                }
+            }
+        
+        }
+
+
+
+ /*erase from out->in vector*/weightPointer->out->in[weightPointer->dataCode].erase(weightPointer->out->in[weightPointer->dataCode].begin() + targetWeightIteration);
+ /*erase from in->out vector*/weightPointer->in->out[weightPointer->dataCode].erase(weightPointer->in->out[weightPointer->dataCode].begin() + targetWeightIterationIn);
+        
+        delete weightPointer;
+ }
 
 void temporalLobe::pushOutWeight(long long int dataCode, node* currentNode, weight* out)
 {
@@ -452,10 +609,10 @@ void temporalLobe::relevanceReduction() //runs through every node, if(node->rele
 //NOTE FOR FURTHER DEVELOPMENT: FOCUS ON BASIC FEATURES AS OF RIGHT NOW, FEATURES FOR ADDED EFFICIENCY / USER EXPERIENCE CAN COME IN LATER :)
                                    //PRIORITY TO DO LIST
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-//Add function to delete nodes and weights, needed as a nodes dependencies (FULL DESCRIP: All in and out weights need to be deleted, as well as the data that points to them in other weights and nodes) also need to be deleted.
+// Debating Add: Function before deletion of found weight in nodeDelete function: function within nodeDelete function to replace cut threads, aka weight -inWeight- /DeletedNode/ -outwWeight- |TargetNode|  ||||||  -inWeight-----|targetNode| ||||||| as shown in diagram should be connected to its target node (node relating to its dataCode) or closest node with an outgoing weight(with same dataCode as targetNode) to targetNode. If no outgoing weight / node exists or dataCode == deletedNode dataCode, then delete weight. May be slightly out of scope for the function group though.
 //Add translation function that is able to write entire structure to a binary file, works off of a translation ruleset, e.g five 0s in conjunction for a new weight /  node etc (needs to be developed theoretically). De initialise structure (delete) after this has been finished.
 //Add reverse to the above function as so you can read from a binary file and initialise the structure. Using the same translation function makes sense, should be coded as so it can work in reverse too.
-//Note: using the c++ bitmap function library should be useful for the above two ADDs.
+//Note: using the c++ binary read / write function library should be useful for the above two ADDs. Aswell as the bitset function to store data points for writing and reading translation.
 //-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 

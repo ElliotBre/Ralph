@@ -104,6 +104,10 @@ public:
 	node* createNode(long long int relevance, long long int data, weight* in, weight* out);
 	weight* createWeight(int relevance, int datacode, node* in, node* out);
 
+	void deleteNode(node* nodePointer);
+	void deleteWeight(weight* weightPointer);
+
+
 	void pushOutWeight(long long int datacode, node* currentNode, weight* out);
 	void pushInWeight(long long int datacode, node* currentNode, weight* in);
 	void compareTopWeight(long long int dataCode, weight* currentWeight, unsigned short overload);
