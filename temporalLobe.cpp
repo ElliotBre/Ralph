@@ -86,7 +86,7 @@ temporalLobe::node* temporalLobe::findNode(long long int dataCode) //Find existi
 
 }
 
-void temporalLobe::decidePos(std::vector<long long int> data) //needs redevelopment as so to allocate data to out[] vector of addresses in node structure
+void temporalLobe::decidePos(std::vector<long long int> data) 
 {
    
     int existingIteration{};
@@ -185,7 +185,7 @@ temporalLobe::node* temporalLobe::createNode(long long int relevance, long long 
     
      return newNode;
 }
-temporalLobe::node* temporalLobe::createNode(long long int relevance, long long int data, weight* in, weight* out)
+temporalLobe::node* temporalLobe::createNode(long long int relevance, long long int data, weight* in, weight* out) //overload of createNode, allows assigning of in and out memory addresses.
 {
     long long int hash = hashIn(data);
     node* newNode = new node(data, hash, 1, out, in);
@@ -195,7 +195,7 @@ temporalLobe::node* temporalLobe::createNode(long long int relevance, long long 
 
     return newNode;
 }
-temporalLobe::weight* temporalLobe::createWeight(int relevance, int dataCode, node* in, node* out)
+temporalLobe::weight* temporalLobe::createWeight(int relevance, int dataCode, node* in, node* out) //create new weight with assigned in and out addresses
 {
     weight* newWeight = new weight(relevance, dataCode, in, out);
 
@@ -533,7 +533,7 @@ void temporalLobe::relevanceReduction() //runs through every node, if(node->rele
         {
             if (focusNode->relevance <= 0)
             {
-                //delete node (placeholder)
+                deleteNode(focusNode);
             }
             else
             {
@@ -558,7 +558,7 @@ void temporalLobe::relevanceReduction() //runs through every node, if(node->rele
                         {
                             if (focusWeight->relevance <= 0)
                             {
-                                //delete weight (placeholder)
+                                deleteWeight(focusWeight);
                             }
                             else
                             {
@@ -578,6 +578,52 @@ void temporalLobe::relevanceReduction() //runs through every node, if(node->rele
 
 
 }
+
+void temporalLobe::translateStructure(node* root)
+{
+    node* focusNode = root;
+    weight* focusWeight;
+
+    std::vector<node*> nodeStack{};
+    std::vector<node*> nodeQue{};
+
+    nodeStack.push_back(focusNode);
+
+    while (nodeStack.size() > 0)  //to do : add deletion function when a weight or node is ran over (after respective data has been processed) , simply use normal delete for weights, use pre built node deletion function for nodes // add respective binary translation function in for when a data point is ran over
+    {
+       
+        while (0 < focusNode->out.size())
+        {
+
+            if (!focusNode->out[0].empty())
+            {
+               
+                while(0 < focusNode->out[0].size())
+                {
+                    if (focusNode->out[0][0] != NULL)
+                    {
+                        focusWeight = focusNode->out[0][0];
+
+                        nodeStack.push_back(focusWeight->out);
+                        focusNode->out[0].erase(focusNode->out[0].begin());
+                        
+                    }
+                    
+                }
+                focusNode->out.erase(focusNode->out.begin());
+            }
+        }
+
+        nodeStack.erase(nodeStack.begin());
+        focusNode = nodeStack[0];
+    }
+    //start at root, translate all weights connected to root creating stack of those weights as you do so, add all nodes that need to be processed (nodes on the out of all of these weights) to a linear que, delete stack of weights, delete node and its connections. (pre defined functions for node deletion).
+    //repeat this process, starting at the first node in the que, translate this node and its weights whiilst adding the weights to a stack, add all nodes that need to be translated (out pointer of weights) to linear ques, delete stack of weights, delete node and its connections, remove node from linear que of nodes.
+    
+    //NOTE: Node and edge deletion during a tranlsation procedure (structure writing) is a feature of a robust translation, an emergency tanslation fucntion should be encorperated in which nodes arent deleted from the structre. This, overall, will make the general function faster (for scenarios in which the computer may be in danger); however, this sacrifices the robustness of the function and in doing so makes the writing procedure vulnerable to overwriting and general corruption of data through the overlapping of already translated nodes (re translating when they should not)
+}
+
+//weights and nodes should have their data codes etc stored with them, this is needed when reloading to properly place them in their respectful vectors
 
 
 
@@ -613,6 +659,8 @@ void temporalLobe::relevanceReduction() //runs through every node, if(node->rele
 //Add translation function that is able to write entire structure to a binary file, works off of a translation ruleset, e.g five 0s in conjunction for a new weight /  node etc (needs to be developed theoretically). De initialise structure (delete) after this has been finished.
 //Add reverse to the above function as so you can read from a binary file and initialise the structure. Using the same translation function makes sense, should be coded as so it can work in reverse too.
 //Note: using the c++ binary read / write function library should be useful for the above two ADDs. Aswell as the bitset function to store data points for writing and reading translation.
+// 
+// refer to translateStructure function
 //-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 

@@ -105,3 +105,9 @@ int main()
 // process diagram
 
 //data input --> processing centre / find answer / try answer / store solution if correct --> if not pull data from seperate cluster and try and format answer from current data, according to the data provided / if simallar answer exists to current question, format in a simalar way --> check how output is reecieved, if good add respective connections, store solution in processing cluster (next to / in relation to similar answer if used) / connect data points in different cluster e.g what is a kangaroo to kangaroo imagery cluster, kangaroo long term memory data point, sahara data point etc
+
+//ToDO
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//possibly modify translation function within temporalLobe as to cater for all sections of ralph, currently programmed to translate long term memory structure only, however could be coded logically as to read all structures if they use the same basic structure (nodes) for the tree.
+//
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

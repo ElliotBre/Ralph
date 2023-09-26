@@ -122,6 +122,9 @@ public:
 	node* findRoot();
 
 	void relevanceReduction();
+	void translateStructure(node* root);
+
+	
 
 
 
