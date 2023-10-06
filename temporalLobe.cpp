@@ -253,9 +253,6 @@ void temporalLobe::deleteNode(node* nodePointer) //Deletes weights pointing dire
 
     delete nodePointer;
 }
-
-   
-
 void temporalLobe::deleteWeight(weight* weightPointer) //finds and removes weight from in->out and out->in lists for corresponding nodes before deleting the weight structure itself.
 {
 
@@ -443,10 +440,6 @@ long long int temporalLobe::hashIn(long long int data)
 
 }
 
-
-
-
-
 bool temporalLobe::hashIn(long long int data, bool overload)
 {
     long long int temp{};
@@ -505,7 +498,6 @@ bool temporalLobe::hashIn(long long int data, bool overload)
     }
 
 }
-
 
 long long int temporalLobe::tempHashData(long long int data) //quickly hash data for comparison
 {
@@ -578,7 +570,39 @@ void temporalLobe::relevanceReduction() //runs through every node, if(node->rele
 
 
 }
+ // Translation Notes:
 
+/*
+   new node set: 0000 0000 0000 0000 
+   New Object: 0000 0000
+   New Value: 1111 1111
+
+
+   start of Node: 0000 0001
+   start of Weight: 0000 0011
+
+   
+   
+   node :
+         load order : data, dataCode, relevance, pointer to weight structure going into node, pointer to weight structure going out of node
+
+         representing int values: function to translate from int full number to binary, return binary bitset
+         binary value that simply tells pointer if it is a node pointer or a weight pointer NOTE: the pointers to nodes and weights will be translated based on order, first a primary node will be written in this is a node which is not translated into data but exists to simply represent the node that these sets of wei
+
+        
+
+
+          
+
+
+
+
+
+
+
+
+
+*/
 void temporalLobe::translateStructure(node* root)
 {
     node* focusNode = root;
@@ -588,10 +612,12 @@ void temporalLobe::translateStructure(node* root)
     std::vector<node*> nodeQue{};
 
     nodeStack.push_back(focusNode);
-
-    while (nodeStack.size() > 0)  //to do : add deletion function when a weight or node is ran over (after respective data has been processed) , simply use normal delete for weights, use pre built node deletion function for nodes // add respective binary translation function in for when a data point is ran over
+    long long int size = nodeStack.size();
+    //todo, add post processed node stack (stack of pointers to processed node) as so duplicate nodes can be identified.
+    //todo, add function to see if node that is about to be processed is in the nodeStack, or post processed node stack, if it is, add flag to say that the node exists, as so it can be pointed to by unloading function but not initialed, or added to pointer que in unloading function.
+    while (size > 0)  //to do : add deletion function when a weight or node is ran over (after respective data has been processed) , simply use normal delete for weights, use pre built node deletion function for nodes // add respective binary translation function in for when a data point is ran over
     {
-       
+      
         while (0 < focusNode->out.size())
         {
 
@@ -606,16 +632,53 @@ void temporalLobe::translateStructure(node* root)
 
                         nodeStack.push_back(focusWeight->out);
                         focusNode->out[0].erase(focusNode->out[0].begin());
+
+                        delete focusWeight;
+
                         
+                        
+                    }
+                    else
+                    {
+                        focusNode->out[0].erase(focusNode->out[0].begin());
                     }
                     
                 }
                 focusNode->out.erase(focusNode->out.begin());
             }
+            else
+            {
+                focusNode->out.erase(focusNode->out.begin());
+            }
         }
+       
+        
+        //FIRST NODE PROCESSED
+        //-----------------------------primary node--------------------------------
+        // -------------------------[out weights of node]--------------------------
+        // ----------------------------first weight [node first out weight set as initialised weights datacode etc through pre existing function] [in pointer ^] [out pointer (down) ---------------------
+        // ----------------------------next primary node (first node stored in node stack and therefore next node processed [in points to last weight, out left as null [add node to pointer que]-------------------------
+        // ----------------------------next weight [appended as next weight in primary nodes out list] [in points to primary node, out points to next node]-----------------------------------------------------------------------------------------------
+        // ----------------------------next next primary node (second in the node stack)[add node to pointer que]------------------------------------------------------------------------------------------------
+        // ----------------------------weight--------------------------------------------------------------------------------------------------------
+        // ----------------------------node [add node to pointer que]----------------------------------------------------------------------------------------------------------
+        // ----------------------------(repeat)---------------------------------------------------------------------------------------------------
+        // 
+        // EVERY NODE AFTER FIRST
+        // ---------------------------POINTER TO PRIMARY NODE GRABBED FROM POINTER STACK BEFORE ANY NODES ARE TRANSLATED------------------------------------------------------------------
+        // -------------------------------[out weight of nodes of new primary node, stored in new binary gate]-----------------------------------------------------------------------------
+        // --------------------------------first weight [in points to primary node, out points to next node loaded]---------------------------------------------------------------------
+        // --------------------------------next node [add to pointer que][last weight appended to in pointer list]------------------------------------------------------------------------------------------------------------------------
+        // --------------------------------next weight--------------------------------------
+        // ---------------------------------next node[with duplicate flag, meaning that it should not be initialised or added to pointer stack, only found in the processed pointerstack and then pointed to]
+        // temp solution to pre intialised nodes: add processed primary nodes to seperate stack, if new primary node is to be set, see if it is stored in stack, if not continue as normal, if so simply ignore node, as it has been stored as a primary node whatever has pointed to it is already stored, and as it has been processed its outs have too.
+        //read in current focus node, this is the primary node of the node set, all in pointers of initiated weights point to that respective node, all out pointers of said weights point to the node stored after said weight, when loading take pointers to all the nodes loaded in and store them in a que, (fifo) , as soon as the next binary gate is traversed set first member of que as the new primary node, as this is the first node traversed by the unloading function. 
+        //put in binary gate, all 0s represents the start of a new node set 
 
+        
         nodeStack.erase(nodeStack.begin());
         focusNode = nodeStack[0];
+        --size;
     }
     //start at root, translate all weights connected to root creating stack of those weights as you do so, add all nodes that need to be processed (nodes on the out of all of these weights) to a linear que, delete stack of weights, delete node and its connections. (pre defined functions for node deletion).
     //repeat this process, starting at the first node in the que, translate this node and its weights whiilst adding the weights to a stack, add all nodes that need to be translated (out pointer of weights) to linear ques, delete stack of weights, delete node and its connections, remove node from linear que of nodes.
