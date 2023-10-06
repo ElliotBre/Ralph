@@ -613,6 +613,8 @@ void temporalLobe::translateStructure(node* root)
 
     nodeStack.push_back(focusNode);
     long long int size = nodeStack.size();
+    //if weight out pointer exists but points to a node that is null, search for said pointer in the post processed node list, if it exists add node data with flag stating that the node is a duplicate, as so node can be unloaded without duplicating, just pointed to 
+    // structure of post processed list should be array[datacode] = [pointer to node] this should be the same for the loading post processed list.
     //todo, add post processed node stack (stack of pointers to processed node) as so duplicate nodes can be identified.
     //todo, add function to see if node that is about to be processed is in the nodeStack, or post processed node stack, if it is, add flag to say that the node exists, as so it can be pointed to by unloading function but not initialed, or added to pointer que in unloading function.
     while (size > 0)  //to do : add deletion function when a weight or node is ran over (after respective data has been processed) , simply use normal delete for weights, use pre built node deletion function for nodes // add respective binary translation function in for when a data point is ran over
@@ -676,6 +678,7 @@ void temporalLobe::translateStructure(node* root)
         //put in binary gate, all 0s represents the start of a new node set 
 
         
+        delete focusNode;
         nodeStack.erase(nodeStack.begin());
         focusNode = nodeStack[0];
         --size;
