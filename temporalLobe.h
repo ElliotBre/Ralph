@@ -26,7 +26,7 @@ class temporalLobe
 {
 	struct weight;
 	struct node;
-
+	
 	struct node
 	{
 		long long int data;
@@ -122,7 +122,10 @@ public:
 	node* findRoot();
 
 	void relevanceReduction();
-	void translateStructure(node* root);
+
+	bool translateStructure(node* root);
+	const char* translateData(long long int data);
+	void writeNode(std::ofstream& file, node* readingNode);
 
 	
 

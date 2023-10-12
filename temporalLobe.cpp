@@ -127,6 +127,7 @@ void temporalLobe::decidePos(std::vector<long long int> data)
         weight* newWeight = new weight(vectorSize, stackRoot->dataCode, stackRoot, nullptr); //points in to node but not out
         focusWeight = newWeight;
 
+
         data.erase(data.begin() + existingIteration);
         --vectorSize;
 
@@ -573,18 +574,18 @@ void temporalLobe::relevanceReduction() //runs through every node, if(node->rele
  // Translation Notes:
 
 /*
-   new node set: 0000 0000 0000 0000 
+   new node set (gate): 0000 0000 0000 0000 
    New Object: 0000 0000
-   New Value: 1111 1111
+   New Value: 0000
 
 
    start of Node: 0000 0001
-   start of Weight: 0000 0011
-
-   
+   end of Node: 0000 0011
+   start of Weight: 0000 0010
+   end of Weight: 0000 0110
    
    node :
-         load order : data, dataCode, relevance, pointer to weight structure going into node, pointer to weight structure going out of node
+        | Binary | -> load order : data, dataCode, relevance | Binary identifier for weight or Node, as so the algorithm knows to trigger set functions (unload algorithm logic) | ->  pointer to weight structure going into node, pointer to weight structure going out of node | 
 
          representing int values: function to translate from int full number to binary, return binary bitset
          binary value that simply tells pointer if it is a node pointer or a weight pointer NOTE: the pointers to nodes and weights will be translated based on order, first a primary node will be written in this is a node which is not translated into data but exists to simply represent the node that these sets of wei
@@ -603,13 +604,20 @@ void temporalLobe::relevanceReduction() //runs through every node, if(node->rele
 
 
 */
-void temporalLobe::translateStructure(node* root)
+bool temporalLobe::translateStructure(node* root) 
 {
+    std::ofstream structure("ralphStructure.bin", std::ios::binary); //original file name is changed when read . ralphStructureRead.bin //potential to number these using file reading function
+    
+    if (!structure)
+    {
+        std::cout << "\nFailed to open file.\n";
+        return 0;
+    }
     node* focusNode = root;
     weight* focusWeight;
-
     std::vector<node*> nodeStack{};
     std::vector<node*> nodeQue{};
+    std::vector<node*> postProcessNode{};
 
     nodeStack.push_back(focusNode);
     long long int size = nodeStack.size();
@@ -617,8 +625,14 @@ void temporalLobe::translateStructure(node* root)
     // structure of post processed list should be array[datacode] = [pointer to node] this should be the same for the loading post processed list.
     //todo, add post processed node stack (stack of pointers to processed node) as so duplicate nodes can be identified.
     //todo, add function to see if node that is about to be processed is in the nodeStack, or post processed node stack, if it is, add flag to say that the node exists, as so it can be pointed to by unloading function but not initialed, or added to pointer que in unloading function.
-    while (size > 0)  //to do : add deletion function when a weight or node is ran over (after respective data has been processed) , simply use normal delete for weights, use pre built node deletion function for nodes // add respective binary translation function in for when a data point is ran over
+    while (nodeStack.size() > 0)  //to do : add deletion function when a weight or node is ran over (after respective data has been processed) , simply use normal delete for weights, use pre built node deletion function for nodes // add respective binary translation function in for when a data point is ran over
     {
+        
+        temporalLobe::writeNode(structure, focusNode);
+
+        std::bitset<128> gate;
+        const char* gateChar = gate.to_string().c_str();
+        structure.write(gateChar, 128);
       
         while (0 < focusNode->out.size())
         {
@@ -687,13 +701,39 @@ void temporalLobe::translateStructure(node* root)
     //repeat this process, starting at the first node in the que, translate this node and its weights whiilst adding the weights to a stack, add all nodes that need to be translated (out pointer of weights) to linear ques, delete stack of weights, delete node and its connections, remove node from linear que of nodes.
     
     //NOTE: Node and edge deletion during a tranlsation procedure (structure writing) is a feature of a robust translation, an emergency tanslation fucntion should be encorperated in which nodes arent deleted from the structre. This, overall, will make the general function faster (for scenarios in which the computer may be in danger); however, this sacrifices the robustness of the function and in doing so makes the writing procedure vulnerable to overwriting and general corruption of data through the overlapping of already translated nodes (re translating when they should not)
+    return 1;
 }
+
 
 //weights and nodes should have their data codes etc stored with them, this is needed when reloading to properly place them in their respectful vectors
 
 
+void temporalLobe::writeNode(std::ofstream& file, node* readingNode)
+{
+    std::bitset<64> gate;
+    gate.set(63, 1);
+    const char* gateChar = gate.to_string().c_str();
+    file.write(gateChar, 64); //start of node
+
+    file.write(translateData(readingNode->data), 64); //write data val
+    file.write(translateData(readingNode->dataCode), 64); //write dataCode
+    file.write(translateData(readingNode->relevance), 32); //write releavance
+
+    file.write("0", 1); //write out node pointer identifier
+    file.write("1", 1); //write in node pointer identifier
+
+    std::bitset<64> end;
+    end.set(63, 1);
+    end.set(62, 1);
+    const char* endChar = end.to_string().c_str();
+    file.write(endChar, 8); //end of node
+}
 
 
+const char * temporalLobe::translateData(long long int data)
+{
+    return std::bitset<64>(data).to_string().c_str();
+}
 
 // Model brains memory off of weighted graph and A star algorithm.
     /*
