@@ -574,15 +574,11 @@ void temporalLobe::relevanceReduction() //runs through every node, if(node->rele
  // Translation Notes:
 
 /*
-   new node set (gate): 0000 0000 0000 0000 
-   New Object: 0000 0000
-   New Value: 0000
+   new node set (gate): 0 x 128
 
-
-   start of Node: 0000 0001
-   end of Node: 0000 0011
-   start of Weight: 0000 0010
-   end of Weight: 0000 0110
+   potential ( new value = 0000 ) ( new obj = 0000 0000) safety layer in case of some data corruption e.g removal of data in a file or flipping of 0 to 1 etc, means just the corrupted object is thrown not the entire data structure, but chances are negligable and cost to file size is high) (bigger files and slower read and write speeds of structure)
+   start + end of Node: 66 x 0
+   start + end of Weight: 64 x 0
    
    node :
         | Binary | -> load order : data, dataCode, relevance | Binary identifier for weight or Node, as so the algorithm knows to trigger set functions (unload algorithm logic) | ->  pointer to weight structure going into node, pointer to weight structure going out of node | 
@@ -610,14 +606,13 @@ bool temporalLobe::translateStructure(node* root)
     
     if (!structure)
     {
-        std::cout << "\nFailed to open file.\n";
+        std::cout << "\nFailed to open file, rejecting translation.\n";
         return 0;
     }
     node* focusNode = root;
     weight* focusWeight;
     std::vector<node*> nodeStack{};
-    std::vector<node*> nodeQue{};
-    std::vector<node*> postProcessNode{};
+    std::vector<node*> postProcessed{};
 
     nodeStack.push_back(focusNode);
     long long int size = nodeStack.size();
@@ -627,12 +622,10 @@ bool temporalLobe::translateStructure(node* root)
     //todo, add function to see if node that is about to be processed is in the nodeStack, or post processed node stack, if it is, add flag to say that the node exists, as so it can be pointed to by unloading function but not initialed, or added to pointer que in unloading function.
     while (nodeStack.size() > 0)  //to do : add deletion function when a weight or node is ran over (after respective data has been processed) , simply use normal delete for weights, use pre built node deletion function for nodes // add respective binary translation function in for when a data point is ran over
     {
-        
+        std::bitset<128> gate;
+        structure.write(gate.to_string().c_str(), 128); //write gate (new node set) -- do not facking remove this time future me
         temporalLobe::writeNode(structure, focusNode);
 
-        std::bitset<128> gate;
-        const char* gateChar = gate.to_string().c_str();
-        structure.write(gateChar, 128);
       
         while (0 < focusNode->out.size())
         {
@@ -644,14 +637,28 @@ bool temporalLobe::translateStructure(node* root)
                 {
                     if (focusNode->out[0][0] != NULL)
                     {
-                        focusWeight = focusNode->out[0][0];
-
-                        nodeStack.push_back(focusWeight->out);
-                        focusNode->out[0].erase(focusNode->out[0].begin());
-
-                        delete focusWeight;
-
                         
+                        focusWeight = focusNode->out[0][0];
+                        temporalLobe::writeWeight(structure, focusWeight);
+
+                        if (focusWeight->out == NULL)                                                       /////////////////////////////////// issue here, no way to see out of weight, therefore store weight as a dupe weight instead of a dupe node ////////////////
+                        {
+                            for (int i = 0; i < postProcessed.size(); i++)
+                            {
+                                if (focusWeight->out == postProcessed[i])
+                                {
+                                    temporalLobe::writeDupeNode(structure, i);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            nodeStack.push_back(focusWeight->out);
+                            temporalLobe::writeNode(structure, focusWeight->out);
+                        }
+                
+                        focusNode->out[0].erase(focusNode->out[0].begin());
+                        delete focusWeight;
                         
                     }
                     else
@@ -669,29 +676,16 @@ bool temporalLobe::translateStructure(node* root)
         }
        
         
-        //FIRST NODE PROCESSED
-        //-----------------------------primary node--------------------------------
-        // -------------------------[out weights of node]--------------------------
-        // ----------------------------first weight [node first out weight set as initialised weights datacode etc through pre existing function] [in pointer ^] [out pointer (down) ---------------------
-        // ----------------------------next primary node (first node stored in node stack and therefore next node processed [in points to last weight, out left as null [add node to pointer que]-------------------------
-        // ----------------------------next weight [appended as next weight in primary nodes out list] [in points to primary node, out points to next node]-----------------------------------------------------------------------------------------------
-        // ----------------------------next next primary node (second in the node stack)[add node to pointer que]------------------------------------------------------------------------------------------------
-        // ----------------------------weight--------------------------------------------------------------------------------------------------------
-        // ----------------------------node [add node to pointer que]----------------------------------------------------------------------------------------------------------
-        // ----------------------------(repeat)---------------------------------------------------------------------------------------------------
-        // 
-        // EVERY NODE AFTER FIRST
-        // ---------------------------POINTER TO PRIMARY NODE GRABBED FROM POINTER STACK BEFORE ANY NODES ARE TRANSLATED------------------------------------------------------------------
-        // -------------------------------[out weight of nodes of new primary node, stored in new binary gate]-----------------------------------------------------------------------------
-        // --------------------------------first weight [in points to primary node, out points to next node loaded]---------------------------------------------------------------------
-        // --------------------------------next node [add to pointer que][last weight appended to in pointer list]------------------------------------------------------------------------------------------------------------------------
-        // --------------------------------next weight--------------------------------------
-        // ---------------------------------next node[with duplicate flag, meaning that it should not be initialised or added to pointer stack, only found in the processed pointerstack and then pointed to]
-        // temp solution to pre intialised nodes: add processed primary nodes to seperate stack, if new primary node is to be set, see if it is stored in stack, if not continue as normal, if so simply ignore node, as it has been stored as a primary node whatever has pointed to it is already stored, and as it has been processed its outs have too.
-        //read in current focus node, this is the primary node of the node set, all in pointers of initiated weights point to that respective node, all out pointers of said weights point to the node stored after said weight, when loading take pointers to all the nodes loaded in and store them in a que, (fifo) , as soon as the next binary gate is traversed set first member of que as the new primary node, as this is the first node traversed by the unloading function. 
-        //put in binary gate, all 0s represents the start of a new node set 
+        while (postProcessed.size() < focusNode->dataCode)
+        {
+            postProcessed.push_back(NULL);
+        }
+        if (postProcessed[focusNode->dataCode] != focusNode)
+        {
+            postProcessed[focusNode->dataCode] == focusNode;
+        }
 
-        
+
         delete focusNode;
         nodeStack.erase(nodeStack.begin());
         focusNode = nodeStack[0];
@@ -704,36 +698,278 @@ bool temporalLobe::translateStructure(node* root)
     return 1;
 }
 
+bool temporalLobe::readStructure(std::string fileName)
+{
+    std::ifstream structure(fileName, std::ios::binary);
+    std::string contents{};
+    std::vector<node*> postProcessedNode{};
+    std::vector<node*> nodeQue{}; //used as referance for next main node
+    std::vector<weight*> weightQue{}; //used as referance to pass into readnode function
+    temporalLobe::node* focusNode{};
+    temporalLobe::weight* focusWeight{};
+
+    structure.open(fileName);
+
+    if (!structure)
+    {
+        std::cout << "\n failure to open file, rejecting translation. \n";
+        return 0;
+    }
+
+    if (structure.is_open())
+    {
+        while (structure.good())
+        {
+            structure >> contents;
+        }
+    }
+
+    //initialise structure
+
+    temporalLobe::initialiseMemory(0);
+
+    std::cout << "\nSize of contents is " << contents.length() << "\n";
+    while (contents.length() > 0)
+    {
+        contents = contents.substr(127, contents.length()); //take first 128 values of contents
+        std::cout << "\nSize of contents is " << contents.length() << "\n";
+        contents = contents.substr(65, contents.length()); //take first 128 values of contents
+        std::cout << "\nSize of contents is " << contents.length() << "\n";
+
+        
+        temporalLobe::readNode(&nodeQue, contents, /*weight from initialisation */nullptr, nullptr);
+        //addnode to node stack
+            while (true)
+            {
+                int count = 0;
+
+                for (int i = 0; i < 62; i++)
+                {
+                    if (contents[i] == 0)
+                    {
+                        ++count;
+                    }
+                }
+                if (count <= 63)
+                {
+                    //readdupenode
+                }
+                else
+                {
+                    count = 0;
+                    for (int i = 0; i < 63; i++)
+                    {
+                        if (contents[i] == 0)
+                        {
+                            ++count;
+                        }
+                    }
+                    if (count <= 64)
+                    {
+                        temporalLobe::readNode(&nodeQue, contents, weightQue[0], nullptr);
+                    }
+                    else
+                    {
+                        count = 0;
+                        for (int i = 0; i < 65; i++)
+                        {
+                            if (contents[i] == 0)
+                            {
+                                ++count;
+                            }
+                        }
+                        if (count <= 66)
+                        {
+                            //readWeight
+                        }
+                        else
+                        {
+                            count = 0;
+                            for (int i = 0; i < 127; i++)
+                            {
+                                if (contents[i] == 0)
+                                {
+                                    ++count;
+                                }
+                            }
+                            if (count <= 128)
+                            {
+                                break;
+                            }
+                            else
+                            {
+                                break;
+                                //report broken
+                            }
+
+                        }
+                    }
+                }
+
+
+                for (int i = 0; i < 128; i++)
+                {
+                    if (contents[i] == 0)
+                    {
+                        ++count;
+                    }
+                }
+                if (count >= 128)
+                {
+                    break;
+                }
+                else
+                {
+                    count = 0;
+                    for (int i = 0; i < 64; i++)
+                    {
+                        contents.erase(contents[0]);
+                        //readWeight
+                    }
+                }
+            }
+           // remove node from node stack
+           //add focusNode to postProcessed Node stack
+
+
+    }
+}
+
+
+//FIRST NODE PROCESSED
+//-----------------------------primary node--------------------------------
+// -------------------------[out weights of node]--------------------------
+// ----------------------------first weight [node first out weight set as initialised weights datacode etc through pre existing function] [in pointer ^] [out pointer (down)] ---------------------
+// ----------------------------next primary node (first node stored in node stack and therefore next node processed [in points to last weight, out left as null [add node to pointer que]-------------------------
+// ----------------------------next weight [appended as next weight in primary nodes out list] [in points to primary node, out points to next node]-----------------------------------------------------------------------------------------------
+// ----------------------------next next primary node (second in the node stack)[add node to pointer que]------------------------------------------------------------------------------------------------
+// ----------------------------weight--------------------------------------------------------------------------------------------------------
+// ----------------------------node [add node to pointer que]----------------------------------------------------------------------------------------------------------
+// ----------------------------(repeat)---------------------------------------------------------------------------------------------------
+// 
+// EVERY NODE AFTER FIRST
+// ---------------------------POINTER TO PRIMARY NODE GRABBED FROM POINTER STACK BEFORE ANY NODES ARE TRANSLATED------------------------------------------------------------------
+// -------------------------------[out weight of nodes of new primary node, stored in new binary gate]-----------------------------------------------------------------------------
+// --------------------------------first weight [in points to primary node, out points to next node loaded]---------------------------------------------------------------------
+// --------------------------------next node [add to pointer que][last weight appended to in pointer list]------------------------------------------------------------------------------------------------------------------------
+// --------------------------------next weight--------------------------------------
+// ---------------------------------next node[with duplicate flag (stored in gate as first two bits), meaning that it should not be initialised or added to pointer stack, only found in the processed pointerstack and then pointed to]
+// temp solution to pre intialised nodes: add processed primary nodes to seperate stack, if new primary node is to be set, see if it is stored in stack, if not continue as normal, if so simply ignore node, as it has been stored as a primary node whatever has pointed to it is already stored, and as it has been processed its outs have too.
+//read in current focus node, this is the primary node of the node set, all in pointers of initiated weights point to that respective node, all out pointers of said weights point to the node stored after said weight, when loading take pointers to all the nodes loaded in and store them in a que, (fifo) , as soon as the next binary gate is traversed set first member of que as the new primary node, as this is the first node traversed by the unloading function. 
+//put in binary gate, all 0s represents the start of a new node set 
+
+// the in pointer for weights is the node that came before it, its corresponding out weight is the node in the same position as itself in their respective processing ques.
+//the in weight of a node is the next weight in the weight processing list, the nodes out weights come after and are listed as such.
+
+//populate postProcessed vector.
+
 
 //weights and nodes should have their data codes etc stored with them, this is needed when reloading to properly place them in their respectful vectors
+std::string temporalLobe::readNode(std::vector<temporalLobe::node*> *que, std::string contents, temporalLobe::weight* in, temporalLobe::weight* out )
+{
+    temporalLobe::node* focusNode{};
+    std::string temp{};
+    long long int data{};
+    int relevance{};
+
+    for (int i = 0; i < 63; i++)
+    {
+        temp.push_back(contents[0]);
+        contents.erase(contents[0]);
+    }
+    
+    data = std::bitset<64>(temp.c_str(), 64).to_ulong();
+
+    temp.clear();
+
+    for (int i = 0; i < 63; i++)
+    {
+        temp.push_back(contents[0]);
+        contents.erase(contents[0]);
+    }
+
+    temp.clear(); 
+
+    for (int i = 0; i < 31; i++)
+    {
+        temp.push_back(contents[0]);
+        contents.erase(contents[0]);
+    }
+
+    data = std::bitset<32>(temp.c_str(), 32).to_ulong();
+
+    focusNode = temporalLobe::createNode(relevance, data, in, out);
+
+    que->push_back(focusNode);
+
+    return contents;
+}
+
+std::string temporalLobe::readDupeNode(std::string contents)
+{
+    temporalLobe::weight* focusWeight{};
+}
+
+std::string temporalLobe::readWeight(std::string contents)
+{
+
+}
+
 
 
 void temporalLobe::writeNode(std::ofstream& file, node* readingNode)
 {
-    std::bitset<64> gate;
-    gate.set(63, 1);
+    std::bitset<66> gate;
     const char* gateChar = gate.to_string().c_str();
-    file.write(gateChar, 64); //start of node
+    file.write(gateChar, 66); //start of node
+    file.write("1", 1); //as so reader does not count too many 0s
 
-    file.write(translateData(readingNode->data), 64); //write data val
-    file.write(translateData(readingNode->dataCode), 64); //write dataCode
-    file.write(translateData(readingNode->relevance), 32); //write releavance
+    file.write(std::bitset<64>(readingNode->data).to_string().c_str(), 64); //write data val
+    file.write(std::bitset<32>(readingNode->relevance).to_string().c_str(), 32); //write releavance
 
-    file.write("0", 1); //write out node pointer identifier
-    file.write("1", 1); //write in node pointer identifier
+    file.write("0", 1); //write out weight pointer identifier, recognised by read program
+    file.write("1", 1); //write in weight pointer identifier, recognised by read program
 
-    std::bitset<64> end;
-    end.set(63, 1);
-    end.set(62, 1);
-    const char* endChar = end.to_string().c_str();
-    file.write(endChar, 8); //end of node
+    file.write(gateChar, 66); //end of node
 }
 
-
-const char * temporalLobe::translateData(long long int data)
+void temporalLobe::writeDupeNode(std::ofstream& file, long long int dataCode) //when dupeNode (easily identifiable now) is found by reading algorithm, search postProcessed list at index (dataCode, found in dupeNode), retrieve details of node and load them into structure as usual).
 {
-    return std::bitset<64>(data).to_string().c_str();
+    std::bitset<66> gate; //see if there is way to instantly set bitset to all 1s 
+    for (int i = 0; i < gate.count(); i++)
+    {
+        gate.set(i, 1);
+    }
+
+    file.write(gate.to_string().c_str(), 66); //write in duplicate node identifier.
+    file.write((std::bitset<64>(dataCode)).to_string().c_str(), 64); //dataCode
+    file.write(gate.reset().to_string().c_str(), 66); //write in end gate for identifier
+
 }
+
+
+void temporalLobe::writeWeight(std::ofstream& file, weight* readingWeight)
+{
+    std::bitset<64> gate;
+    const char* write;
+
+    //write in weight gate
+    write = gate.to_string().c_str();
+    file.write(write, 64);
+    file.write("1", 1);
+
+    file.write(std::bitset<64>(readingWeight->relevance).to_string().c_str(), 64);
+    file.write(std::bitset<64>(readingWeight->dataCode).to_string().c_str(), 64);
+
+    file.write("1", 1); //write in node pointer identifier, recognised by read program
+    file.write("0", 1); //write out node pointer identifier, recognised by read program
+
+    write = gate.to_string().c_str();
+    file.write(write, 64);
+   
+}
+
+
 
 // Model brains memory off of weighted graph and A star algorithm.
     /*
@@ -762,8 +998,7 @@ const char * temporalLobe::translateData(long long int data)
                                    //PRIORITY TO DO LIST
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 // Debating Add: Function before deletion of found weight in nodeDelete function: function within nodeDelete function to replace cut threads, aka weight -inWeight- /DeletedNode/ -outwWeight- |TargetNode|  ||||||  -inWeight-----|targetNode| ||||||| as shown in diagram should be connected to its target node (node relating to its dataCode) or closest node with an outgoing weight(with same dataCode as targetNode) to targetNode. If no outgoing weight / node exists or dataCode == deletedNode dataCode, then delete weight. May be slightly out of scope for the function group though.
-//Add translation function that is able to write entire structure to a binary file, works off of a translation ruleset, e.g five 0s in conjunction for a new weight /  node etc (needs to be developed theoretically). De initialise structure (delete) after this has been finished.
-//Add reverse to the above function as so you can read from a binary file and initialise the structure. Using the same translation function makes sense, should be coded as so it can work in reverse too.
+//Add read function to read from a binary file and initialise the structure. Using the same translation function makes sense (as write), should be coded as so it can work in reverse too.
 //Note: using the c++ binary read / write function library should be useful for the above two ADDs. Aswell as the bitset function to store data points for writing and reading translation.
 // 
 // refer to translateStructure function

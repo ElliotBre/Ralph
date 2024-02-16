@@ -124,13 +124,15 @@ public:
 	void relevanceReduction();
 
 	bool translateStructure(node* root);
-	const char* translateData(long long int data);
+	bool readStructure(std::string fileName);
+
 	void writeNode(std::ofstream& file, node* readingNode);
+	void writeWeight(std::ofstream& file, weight* readingWeight);
+	void writeDupeNode(std::ofstream& file, long long int dataCode);
 
-	
-
-
-
+	std::string readNode(std::vector<temporalLobe::node*> *que, std::string contents, temporalLobe::weight* in, temporalLobe::weight* out);
+	std::string readDupeNode(std::string contents);
+	std::string readWeight(std::string contents);
 
 private:
 	node* root;
