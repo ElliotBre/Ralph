@@ -1,5 +1,4 @@
-#include "connectionMain.h"
-#include "Library.h"
+#include "instructionSet.h"
 
 //NOTE: to link program files each file can consist of a class, each class can be called by its various functions through object creation (when START message is fetched) each class is capable of sending messages into main loop through their own messaging procedures
 //These messages can then be handled through the main loop, when a message is passed it will call its relevant function /  functions from its source file to execute the required procedure.
@@ -17,6 +16,7 @@ int main()
 {
 
 	tree mainLoop;
+	temporalLobe::node* root = mainLoop.initialiseMemory(0);
 
 	mainLoop.sendMessage(mainLoop.START, 10);
 	mainLoop.sendMessage(mainLoop.TEST, 4);
@@ -30,7 +30,7 @@ int main()
 
 		bool flag = false;
 		int num{};
-		mainLoop.sendMessage(mainLoop.fetchPost()); //CHECK MESSAGE QUE PRIORITY, TAKE PRIORITY MESSAGE
+		mainLoop.sendMessage(mainLoop.fetchPost(), mainLoop); //CHECK MESSAGE QUE PRIORITY, TAKE PRIORITY MESSAGE
 
 		while (flag == false) // loop implemented to pause system at runtime as to see console outputs of main message loop.
 		{

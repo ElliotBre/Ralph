@@ -1,13 +1,11 @@
 #pragma once
-#include "Library.h"
-
+#include "connectionMain.h"
 
 //Binary tree for 
 
-class tree 
+class tree : public temporalLobe
 {
 public:
-
 	enum message
 	{
 		START, //ON START INITIALISE ALL TREES FOR QUES RELATIVE TO EACH STEM
@@ -17,70 +15,95 @@ public:
 
 
 		MEMORY,
+		INIT,
+		WRITESTRUCT,
+		READSTRUCT,
+		DECIDEPOS,
+		CREATENODE,
+		CREATENODEFULL,
+		CREATEWEIGHT,
+		DELETENODE,
+		DELETEWEIGHT,
+		PUSHOUTWEIGHTADRESS,
+		PUSHINWEIGHTADRESS,
+	    HASHIN,
+		HASHINOVERLOAD,
+		TEMPHASHDATA,
+		FINDNODE,
+		FINDROOT,
+		RELEVANCEREDUCTION,
+		TRANSLATESTRUCTURE,
+		READSTRUCTURE,
+		WRITENODE,
+		WRITEWEIGHT,
+		WRITEDUPENODE,
+		READNODE,
+		READDUPENODE,
+		READWEIGHT
 
 	};
 
-	struct node {
+	struct messageNode {
 		message msg;
-		int weight;
-		node* left;
-		node* right;
+		int messageWeight;
+		messageNode* left;
+		messageNode* right;
 
-		node(message msg, int weight)
+		messageNode(message msg, int messageWeight)
 		{
 			this->msg = msg;
-			this->weight = weight;
+			this->messageWeight = messageWeight;
 			this->left = nullptr;
 			this->right = nullptr;
 		}
 	};
 
-	node* root;
+	messageNode* queRoot;
 
 	tree() {
-		root = nullptr;
+		queRoot = nullptr;
 		std::cout << "-----------------------------------\n" << "Initialising Binary Tree \n";
 	}
 
-	void sendMessage(message msg, int weight) //CATCH MESSAGE, PASS TO MESSAGE QUE
+	void sendMessage(message msg, int messageWeight) //CATCH MESSAGE, PASS TO MESSAGE QUE
 	{
-		node* newNode = new node(msg, weight);
+		messageNode* newMessageNode = new messageNode(msg, messageWeight);
 
-		if (root == nullptr)
+		if (queRoot == nullptr)
 		{
-			root = newNode;
+			queRoot = newMessageNode;
 
 			setRoot(true);
 		}
 
 		else
 		{
-			node* focus = root;
-			node* parent;
+			messageNode* queFocus = queRoot;
+			messageNode* parent;
 
 			while (true) // loops through nodes until empty slot is found.
 			{
 
-				parent = focus;
+				parent = queFocus;
 
-				if (newNode->weight < focus->weight) 
+				if (newMessageNode->messageWeight < queFocus->messageWeight) 
 				{
-					focus = focus->left;
+					queFocus = queFocus->left;
 					std::cout << "focus shifting left \n";
-					if (focus == nullptr)
+					if (queFocus == nullptr)
 					{
-						parent->left = newNode;
+						parent->left = newMessageNode;
 						std::cout << "node made left\n";
 						return;
 					}
 				}
 				else
 				{
-					focus = focus->right;
+					queFocus = queFocus->right;
 					std::cout << "focus shifting right \n";
-					if (focus == nullptr)
+					if (queFocus == nullptr)
 					{
-						parent->right = newNode;
+						parent->right = newMessageNode;
 						std::cout << "node made right\n";
 						return;
 					}
@@ -93,8 +116,8 @@ public:
 	message fetchPost()
 	{
 
-		node* focus = root;
-		node* prevFocus = root;
+		messageNode* queFocus = queRoot;
+		messageNode* prevQueFocus = queRoot;
 		 
 		while (true)
 		{ 
@@ -112,37 +135,37 @@ public:
 			}
 			else
 			{
-				if (focus->left == nullptr)
+				if (queFocus->left == nullptr)
 				{
 
-					if (focus->right == nullptr)
+					if (queFocus->right == nullptr)
 					{
 
 						std::cout << "post grabbed\n";
-						message msg = focus->msg;
+						message msg = queFocus->msg;
 
 						switch (getFlag())
 						{
 
 						case(true):
-							prevFocus->right = nullptr;
+							prevQueFocus->right = nullptr;
 							break;
 						case(false):
-							prevFocus->left = nullptr;
+							prevQueFocus->left = nullptr;
 							break;
 						}
-						if (prevFocus == root)
+						if (prevQueFocus == queRoot)
 						{
 							setRoot(false);
 						}
-						delete focus;
+						delete queFocus;
 						std::cout << "focus cleared\n";
 						return msg;
 					}
 					else
 					{
-						prevFocus = focus;
-						focus = focus->right;
+						prevQueFocus = queFocus;
+						queFocus = queFocus->right;
 						setFlag(true);
 						std::cout << "focus shifting right \n";
 					}
@@ -152,8 +175,8 @@ public:
 				else
 				{
 
-					prevFocus = focus;
-					focus = focus->left;
+					prevQueFocus = queFocus;
+					queFocus = queFocus->left;
 					setFlag(false);
 					std::cout << "focus shifting left \n";
 				};
@@ -166,7 +189,7 @@ public:
 
 	}
 
-	void sendMessage(message pass)
+	void sendMessage(message pass, tree instance)
 	{
 		switch (pass)
 		{
@@ -183,15 +206,83 @@ public:
 
 
 			break;
-
-
-
 		case(MEMORY):
 			std::cout << "Accesing memory";
 
 			break;
+		case(WRITESTRUCT):
 
+			break;
 
+		case(READSTRUCT):
+
+			break;
+		case(DECIDEPOS):
+
+			break;
+		case(CREATENODE):
+
+			break;
+		case(CREATENODEFULL):
+
+			break;
+		case(CREATEWEIGHT):
+
+			break;
+		case(DELETENODE):
+
+			break;
+		case(DELETEWEIGHT):
+
+			break;
+		case(PUSHOUTWEIGHTADRESS):
+
+			break;
+		case(PUSHINWEIGHTADRESS):
+
+			break;
+		case(HASHIN):
+
+			break;
+		case(HASHINOVERLOAD):
+
+			break;
+		case(TEMPHASHDATA):
+
+			break;
+		case(FINDNODE):
+
+			break;
+		case(FINDROOT):
+
+			break;
+		case(RELEVANCEREDUCTION):
+
+			break;
+		case(TRANSLATESTRUCTURE):
+
+			break;
+		case(READSTRUCTURE):
+
+			break;
+		case(WRITENODE):
+
+			break;
+		case(WRITEWEIGHT):
+
+			break;
+		case(WRITEDUPENODE):
+
+			break;
+		case(READNODE):
+
+			break;
+		case(READDUPENODE):
+
+			break;
+		case(READWEIGHT):
+
+			break;
 		default:
 			break;
 		}
@@ -222,10 +313,6 @@ private:
 		rootFlag = set;
 	}
 
-	
-
-
-	
 };
 
 

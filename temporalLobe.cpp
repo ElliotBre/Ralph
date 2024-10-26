@@ -13,7 +13,7 @@
 
 temporalLobe::node* temporalLobe::initialiseMemory(bool doesStructureExist)  // initialise memory root, write to file using writeStructure file
 {
-    if(doesStructureExist == false)
+    if (doesStructureExist == false)
     {
         root = createNode(0, 0);
         return root;
@@ -22,22 +22,22 @@ temporalLobe::node* temporalLobe::initialiseMemory(bool doesStructureExist)  // 
     {
         return nullptr;
     }
-}
+};
 
 void temporalLobe::writeStructure() //write current structure to file, could possibly pull all known points from stored stack if saving whole points, or could simply write to file every time a node is created or destroyed.
 {
     //write memory structure to binary file
-}
+};
 
 void temporalLobe::readStructure() //loads current database structure from file, could load root first from beginning of file, then each individual node (consisting of dataCode and int data stored in node for translation), then connections between these nodes aka individual weights are loaded (consisting of in and out pointing connections and dataCode of weight (what node this weight points to for use by pathing algorithm).
 {
     //read binary file, write from binary file to system (initialising the stored memory structure)
-}
+};
 
 temporalLobe::node* temporalLobe::findRoot() //more memorable way to findRoot, for those who may not understand that the root private variable within tempLobe class exists to point to existing root :)
 {
     return root;
-}
+};
 
 
 temporalLobe::node* temporalLobe::findNode(long long int dataCode) //Find existing node to pull data from within the structure
@@ -46,8 +46,8 @@ temporalLobe::node* temporalLobe::findNode(long long int dataCode) //Find existi
     weight* topWeight{};
     node* focusNode{};
     weight* focusWeight{};
-    
-    
+
+
 
     focusNode = root;
     while (true)
@@ -84,11 +84,11 @@ temporalLobe::node* temporalLobe::findNode(long long int dataCode) //Find existi
     }
 
 
-}
+};
 
-void temporalLobe::decidePos(std::vector<long long int> data) 
+void temporalLobe::decidePos(std::vector<long long int> data)
 {
-   
+
     int existingIteration{};
     int vectorSize = data.size();
     std::vector <long long int> existingDataOverflow{};
@@ -98,7 +98,7 @@ void temporalLobe::decidePos(std::vector<long long int> data)
     node* focusNode{};
     weight* focusWeight{};
 
-   
+
 
     for (int i = 0; i < vectorSize; i++)
     {
@@ -120,9 +120,9 @@ void temporalLobe::decidePos(std::vector<long long int> data)
 
     if (flag == true)
     {
-        
+
         stackRoot = findNode(tempHashData(data[existingIteration]));
-      
+
 
         weight* newWeight = new weight(vectorSize, stackRoot->dataCode, stackRoot, nullptr); //points in to node but not out
         focusWeight = newWeight;
@@ -131,28 +131,28 @@ void temporalLobe::decidePos(std::vector<long long int> data)
         data.erase(data.begin() + existingIteration);
         --vectorSize;
 
-      
+
         focusNode = createNode(9, data[0], newWeight, nullptr);
         data.erase(data.begin());
 
-       
+
         while (vectorSize > 0)
         {
             weight* newWeight = new weight(vectorSize, stackRoot->dataCode, focusNode, nullptr);
             focusWeight = newWeight;
-            focusNode = createNode(vectorSize, data[0],focusWeight, nullptr);
-            
+            focusNode = createNode(vectorSize, data[0], focusWeight, nullptr);
+
             data.erase(data.begin());
             --vectorSize;
         }
-            
+
         vectorSize = existingDataOverflow.size();
         while (vectorSize > 0) //add connections between all already existing node to root node (deliberate whether to add connection from these nodes to newly created nodes too).
         {
             focusNode = findNode(tempHashData(existingDataOverflow[0]));
 
             weight* newWeight = new weight(5, focusNode->dataCode, stackRoot, focusNode);
-            weight* newWeight = new weight(5, stackRoot->dataCode, focusNode, stackRoot);
+            weight* newWeightDos = new weight(5, stackRoot->dataCode, focusNode, stackRoot); //change this, also look into if I should be doing something with these weights herer
 
             --vectorSize;
             existingDataOverflow.erase(existingDataOverflow.begin());
@@ -173,9 +173,9 @@ void temporalLobe::decidePos(std::vector<long long int> data)
             data.erase(data.begin());
             --vectorSize;
         }
-   
+
     }
-}
+};
 //if connecction already exists when finding running through stack after match has been found simply connect existing data set to existing data set.
 
 
@@ -200,13 +200,13 @@ temporalLobe::weight* temporalLobe::createWeight(int relevance, int dataCode, no
 {
     weight* newWeight = new weight(relevance, dataCode, in, out);
 
-  //in->out[dataCode] = newWeight;
-    
+    //in->out[dataCode] = newWeight;
+
     compareTopWeight(dataCode, newWeight, 1);
     compareTopWeight(dataCode, newWeight);
 
     return newWeight;
-}
+};
 
 void temporalLobe::deleteNode(node* nodePointer) //Deletes weights pointing directly into and out of node before deleting the node structure itself. Note: look at todo for further development of this function (and or deleteWeight function depending on direction taken).
 {
@@ -224,7 +224,7 @@ void temporalLobe::deleteNode(node* nodePointer) //Deletes weights pointing dire
             while (0 < nodePointer->out[0].size())
             {
                 deleteWeight(nodePointer->out[0][0]);
-               // nodePointer->out[0].erase(nodePointer->out[0].begin()); Note: not needed (neeeds to be tested) as removal covered in deleteWeight Function
+                // nodePointer->out[0].erase(nodePointer->out[0].begin()); Note: not needed (neeeds to be tested) as removal covered in deleteWeight Function
             }
 
             nodePointer->out.erase(nodePointer->out.begin());
@@ -253,7 +253,7 @@ void temporalLobe::deleteNode(node* nodePointer) //Deletes weights pointing dire
     }
 
     delete nodePointer;
-}
+};
 void temporalLobe::deleteWeight(weight* weightPointer) //finds and removes weight from in->out and out->in lists for corresponding nodes before deleting the weight structure itself.
 {
 
@@ -266,8 +266,8 @@ void temporalLobe::deleteWeight(weight* weightPointer) //finds and removes weigh
     long long int tempTargetWeightIterationFront = 0;
     long long int tempTargetWeightIterationFrontIn = 0;
   
-    focusVector = weightPointer->out->in[weightPointer->dataCode];
-    focusVectorIn = weightPointer->in->out[weightPointer->dataCode];
+    focusVector = (weightPointer->out)->in[weightPointer->dataCode];
+    focusVectorIn = (weightPointer->in)->out[weightPointer->dataCode];
 
         //erase correspondent weight in node connected out->in vector
         //erase correspondent weight in node connected in->out vector
@@ -357,11 +357,11 @@ void temporalLobe::deleteWeight(weight* weightPointer) //finds and removes weigh
 
 
 
- /*erase from out->in vector*/weightPointer->out->in[weightPointer->dataCode].erase(weightPointer->out->in[weightPointer->dataCode].begin() + targetWeightIteration);
- /*erase from in->out vector*/weightPointer->in->out[weightPointer->dataCode].erase(weightPointer->in->out[weightPointer->dataCode].begin() + targetWeightIterationIn);
+ /*erase from out->in vector*/(weightPointer->out)->in[weightPointer->dataCode].erase((weightPointer->out)->in[weightPointer->dataCode].begin() + targetWeightIteration);
+ /*erase from in->out vector*/(weightPointer->in)->out[weightPointer->dataCode].erase((weightPointer->in)->out[weightPointer->dataCode].begin() + targetWeightIterationIn);
         
         delete weightPointer;
- }
+ };
 
 void temporalLobe::pushOutWeight(long long int dataCode, node* currentNode, weight* out)
 {
@@ -379,16 +379,16 @@ void temporalLobe::compareTopWeight(long long int dataCode, weight* currentWeigh
     {
         currentWeight->out->pushTopWeight(dataCode, currentWeight, overload);
     }
-}
+};
 void temporalLobe::compareTopWeight(long long int dataCode, weight* currentWeight) //compare top out weight of node
 {
     if (currentWeight->relevance > currentWeight->in->outTop[dataCode].first)
     {
         currentWeight->in->pushTopWeight(dataCode, currentWeight);
     }
-}
+};
 
-long long int temporalLobe::hashIn(long long int data) 
+long long int temporalLobe::hashIn(long long int data)
 
 {
     long long int temp{};
@@ -439,7 +439,7 @@ long long int temporalLobe::hashIn(long long int data)
         }
     }
 
-}
+};
 
 bool temporalLobe::hashIn(long long int data, bool overload)
 {
@@ -462,7 +462,7 @@ bool temporalLobe::hashIn(long long int data, bool overload)
             {
                 while (true)
                 {
-                    
+
                     long long int i = temp;
                     std::cout << "Existing DataCode not equal to input found, incrementing index. Index = " << i << "\n";
 
@@ -498,12 +498,12 @@ bool temporalLobe::hashIn(long long int data, bool overload)
         return false;
     }
 
-}
+};
 
 long long int temporalLobe::tempHashData(long long int data) //quickly hash data for comparison
 {
     return data * 100 % 10 - 5 / 2 + 22 * 3;
-}
+};
 
 //Note modifications such as a list of all low relevance vectors (as to speed up process of deletion), can be added. Modification for a more efficient function is also probably needed.
 void temporalLobe::relevanceReduction() //runs through every node, if(node->relevance !> 10) --node->relevance, does same for in weight list for each visited node.
@@ -513,7 +513,7 @@ void temporalLobe::relevanceReduction() //runs through every node, if(node->rele
 
     std::vector<long long int> tempCodes = hashCodes;
     std::vector<weight*> tempWeights{};
-    
+
 
 
     focusNode = root;
@@ -570,7 +570,7 @@ void temporalLobe::relevanceReduction() //runs through every node, if(node->rele
     }
 
 
-}
+};
  // Translation Notes:
 
 /*
@@ -600,10 +600,10 @@ void temporalLobe::relevanceReduction() //runs through every node, if(node->rele
 
 
 */
-bool temporalLobe::translateStructure(node* root) 
+bool temporalLobe::translateStructure(node* root)
 {
     std::ofstream structure("ralphStructure.bin", std::ios::binary); //original file name is changed when read . ralphStructureRead.bin //potential to number these using file reading function
-    
+
     if (!structure)
     {
         std::cout << "\nFailed to open file, rejecting translation.\n";
@@ -626,18 +626,18 @@ bool temporalLobe::translateStructure(node* root)
         structure.write(gate.to_string().c_str(), 128); //write gate (new node set) -- do not facking remove this time future me
         temporalLobe::writeNode(structure, focusNode);
 
-      
+
         while (0 < focusNode->out.size())
         {
 
             if (!focusNode->out[0].empty())
             {
-               
-                while(0 < focusNode->out[0].size())
+
+                while (0 < focusNode->out[0].size())
                 {
                     if (focusNode->out[0][0] != NULL)
                     {
-                        
+
                         focusWeight = focusNode->out[0][0];
                         temporalLobe::writeWeight(structure, focusWeight);
 
@@ -656,16 +656,16 @@ bool temporalLobe::translateStructure(node* root)
                             nodeStack.push_back(focusWeight->out);
                             temporalLobe::writeNode(structure, focusWeight->out);
                         }
-                
+
                         focusNode->out[0].erase(focusNode->out[0].begin());
                         delete focusWeight;
-                        
+
                     }
                     else
                     {
                         focusNode->out[0].erase(focusNode->out[0].begin());
                     }
-                    
+
                 }
                 focusNode->out.erase(focusNode->out.begin());
             }
@@ -674,15 +674,15 @@ bool temporalLobe::translateStructure(node* root)
                 focusNode->out.erase(focusNode->out.begin());
             }
         }
-       
-        
-        while (postProcessed.size() < focusNode->dataCode)
+
+
+        while ((unsigned int)postProcessed.size() < focusNode->dataCode)
         {
             postProcessed.push_back(NULL);
         }
         if (postProcessed[focusNode->dataCode] != focusNode)
         {
-            postProcessed[focusNode->dataCode] == focusNode;
+            postProcessed[focusNode->dataCode] = focusNode;
         }
 
 
@@ -693,10 +693,10 @@ bool temporalLobe::translateStructure(node* root)
     }
     //start at root, translate all weights connected to root creating stack of those weights as you do so, add all nodes that need to be processed (nodes on the out of all of these weights) to a linear que, delete stack of weights, delete node and its connections. (pre defined functions for node deletion).
     //repeat this process, starting at the first node in the que, translate this node and its weights whiilst adding the weights to a stack, add all nodes that need to be translated (out pointer of weights) to linear ques, delete stack of weights, delete node and its connections, remove node from linear que of nodes.
-    
+
     //NOTE: Node and edge deletion during a tranlsation procedure (structure writing) is a feature of a robust translation, an emergency tanslation fucntion should be encorperated in which nodes arent deleted from the structre. This, overall, will make the general function faster (for scenarios in which the computer may be in danger); however, this sacrifices the robustness of the function and in doing so makes the writing procedure vulnerable to overwriting and general corruption of data through the overlapping of already translated nodes (re translating when they should not)
     return 1;
-}
+};
 
 bool temporalLobe::readStructure(std::string fileName)
 {
@@ -780,7 +780,7 @@ bool temporalLobe::readStructure(std::string fileName)
                         }
                         if (count <= 66)
                         {
-                            //readWeight
+                            temporalLobe::readWeight(&weightQue, contents, nodeQue[0], nullptr);
                         }
                         else
                         {
@@ -833,7 +833,7 @@ bool temporalLobe::readStructure(std::string fileName)
 
 
     }
-}
+};
 
 
 //FIRST NODE PROCESSED
@@ -865,7 +865,7 @@ bool temporalLobe::readStructure(std::string fileName)
 
 
 //weights and nodes should have their data codes etc stored with them, this is needed when reloading to properly place them in their respectful vectors
-std::string temporalLobe::readNode(std::vector<temporalLobe::node*> *que, std::string contents, temporalLobe::weight* in, temporalLobe::weight* out )
+std::string temporalLobe::readNode(std::vector<temporalLobe::node*>* que, std::string contents, temporalLobe::weight* in, temporalLobe::weight* out)
 {
     temporalLobe::node* focusNode{};
     std::string temp{};
@@ -877,7 +877,7 @@ std::string temporalLobe::readNode(std::vector<temporalLobe::node*> *que, std::s
         temp.push_back(contents[0]);
         contents.erase(contents[0]);
     }
-    
+
     data = std::bitset<64>(temp.c_str(), 64).to_ulong();
 
     temp.clear();
@@ -888,7 +888,7 @@ std::string temporalLobe::readNode(std::vector<temporalLobe::node*> *que, std::s
         contents.erase(contents[0]);
     }
 
-    temp.clear(); 
+    temp.clear();
 
     for (int i = 0; i < 31; i++)
     {
@@ -903,23 +903,68 @@ std::string temporalLobe::readNode(std::vector<temporalLobe::node*> *que, std::s
     que->push_back(focusNode);
 
     return contents;
-}
+};
 
-std::string temporalLobe::readDupeNode(std::string contents)
+//std::string temporalLobe::readDupeNode(std::string contents)
+//{
+   // temporalLobe::weight* focusWeight{};
+//}
+
+std::string temporalLobe::readWeight(std::vector<weight*>* que, std::string contents, temporalLobe::node* in, temporalLobe::node* out)
 {
     temporalLobe::weight* focusWeight{};
-}
+    std::string temp{};
+    long long int data{};
 
-std::string temporalLobe::readWeight(std::string contents)
-{
+    int relevance{};
+    int dataCode{};
 
-}
+    for (int i = 0; i < 64; i++)
+    {
+        contents.erase(contents[0]);
+    }
 
+    contents.erase(contents[0]);
 
+    for (int i = 0; i < 64; i++)
+    {
+        temp.push_back(contents[0]);
+        contents.erase(contents[0]);
+    }
+
+    relevance = std::bitset<64>(temp.c_str(), 64).to_ulong();
+
+    temp.clear();
+
+    for (int i = 0; i < 64; i++)
+    {
+        temp.push_back(contents[0]);
+        contents.erase(contents[0]);
+    }
+
+    dataCode = std::bitset<64>(temp.c_str(), 64).to_ulong();
+
+    temp.clear();
+
+    contents.erase(contents[0]);
+    contents.erase(contents[0]);
+
+    for (int i = 0; i < 64; i++)
+    {
+        contents.erase(contents[0]);
+    }
+
+    focusWeight = temporalLobe::createWeight(relevance, dataCode, in, out);
+
+    que->push_back(focusWeight);
+
+    return contents;
+
+};
 
 void temporalLobe::writeNode(std::ofstream& file, node* readingNode)
 {
-    std::bitset<66> gate;
+    std::bitset<66> gate{};
     const char* gateChar = gate.to_string().c_str();
     file.write(gateChar, 66); //start of node
     file.write("1", 1); //as so reader does not count too many 0s
@@ -931,7 +976,8 @@ void temporalLobe::writeNode(std::ofstream& file, node* readingNode)
     file.write("1", 1); //write in weight pointer identifier, recognised by read program
 
     file.write(gateChar, 66); //end of node
-}
+    delete gateChar;
+};
 
 void temporalLobe::writeDupeNode(std::ofstream& file, long long int dataCode) //when dupeNode (easily identifiable now) is found by reading algorithm, search postProcessed list at index (dataCode, found in dupeNode), retrieve details of node and load them into structure as usual).
 {
@@ -945,12 +991,12 @@ void temporalLobe::writeDupeNode(std::ofstream& file, long long int dataCode) //
     file.write((std::bitset<64>(dataCode)).to_string().c_str(), 64); //dataCode
     file.write(gate.reset().to_string().c_str(), 66); //write in end gate for identifier
 
-}
+};
 
 
 void temporalLobe::writeWeight(std::ofstream& file, weight* readingWeight)
 {
-    std::bitset<64> gate;
+    std::bitset<64> gate{};
     const char* write;
 
     //write in weight gate
@@ -966,8 +1012,9 @@ void temporalLobe::writeWeight(std::ofstream& file, weight* readingWeight)
 
     write = gate.to_string().c_str();
     file.write(write, 64);
-   
-}
+    delete write;
+
+};
 
 
 
